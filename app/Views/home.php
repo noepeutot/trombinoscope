@@ -130,7 +130,7 @@
                 <article>
                     <a class="link-offset-2 link-underline link-underline-opacity-0 card shadow bg-body m-2 p-4"
                        style="width: 14rem;"
-                       href="<?= base_url('profile/'.$value['id_personne']) ?>">
+                       href="<?=base_url('profile/').$value['id_personne']?>">
                         <img class="card-img-top" src="assets/images/pp.jpg" height="200px" alt="photographie">
                         <div class="pb-0 pt-3 object-fit-contain">
                             <h6 class="card-title text-center mb-0"><?php echo $value["prenom"] . " " . $value["nom_usage"] ?></h6>
