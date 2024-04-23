@@ -37,7 +37,7 @@
 </style>
 <body>
 <header class="d-flex justify-content-between align-items-center my-5">
-    <a type="button" class="btn btn-light d-flex align-items-center mx-5 px-4" href="<?= base_url('/') ?>">
+    <a type="button" class="btn btn-light d-flex align-items-center mx-5 px-4" href="javascript:history.back()">
         <img class="me-2" src="<?= img_url('back_arrow.svg') ?>" alt="retour" height="20px">
         <span>Retour</span>
     </a>
@@ -50,12 +50,12 @@
     <main class="d-flex flex-column justify-content-center align-items-center">
         <section class="d-flex flex-column justify-content-center align-items-center mb-5">
             <img id="profilePicture" class="border border-5 border-light rounded-3"
-                 src="<?= img_url('profile_picture.jpg') ?>"
+                 src="<?= img_url($imageURL) ?>"
                  alt="photographie">
             <h2><?= $personnes['nom_usage'] . ' ' . $personnes['prenom'] ?></h2>
 
             <?php if (isset($personnes['mails_pro'][0]['mail'])) { ?>
-                <p class="mb-0"><?= $personnes['mails_pro'][0]['mail'] ?></p>
+                <p class="mb-0"><?= strtolower($personnes['mails_pro'][0]['mail']) ?></p>
             <?php } else { ?>
                 <p class="fst-italic mb-0"><?= "Aucun email professionnel" ?></p>
             <?php } ?>
@@ -80,13 +80,19 @@
                     <p class="fw-bold mb-0"><?= $personnels['equipes'] ?></p>
                 </div>
             <?php } ?>
+            <?php if (isset($sujet)) { ?>
+                <div class="col-4 my-2">
+                    <p class="fw-light mb-0">Activités</p>
+                    <p class="fw-bold mb-0"><?= $sujet ?></p>
+                </div>
+            <?php } ?>
 
             <?php if (isset($responsabilites)) { ?>
                 <div class="col-4 my-2">
                     <p class="fw-light mb-1">Résponsabilités</p>
                     <p class="fw-bold mb-0">
                         <?php foreach ($responsabilites as $responsabilite) { ?>
-                            <span><?= $responsabilite['responsabilite'] ?></span>
+                            <span><?= $responsabilite['responsabilite']['responsabilite'] ?></span>
                             <?php if (next($sejours['financements'])) {
                                 echo ", ";
                             }
@@ -94,13 +100,6 @@
                     </p>
                 </div>
             <?php } ?>
-            <?php if (isset($personnels['date_debut_sejour'])) { ?>
-                <div class="col-4 my-2">
-                    <p class="fw-light mb-1">Date d'entrée</p>
-                    <p class="fw-bold mb-0"><?= $personnels['date_debut_sejour'] ?></p>
-                </div>
-            <?php } ?>
-
             <?php if (isset($localisation['numero_bureau'])) { ?>
                 <div class="col-4 my-2">
                     <p class="fw-light mb-1">Bureau</p>
@@ -120,13 +119,6 @@
                     </p>
                 </div>
             <?php } ?>
-            <?php if (isset($localisation['date_fin_sejour'])) { ?>
-                <div class="col-4 my-2">
-                    <p class="fw-light mb-0">Date de départ</p>
-                    <p class="fw-bold mb-0"><?= $personnels['date_fin_sejour'] ?></p>
-                </div>
-            <?php } ?>
-
             <?php if (isset($encadrants)) { ?>
                 <div class="col-4 my-2">
                     <p class="fw-light mb-0">Responsable(s)</p>
@@ -143,6 +135,18 @@
                             }
                         } ?>
                     </p>
+                </div>
+            <?php } ?>
+            <?php if (isset($personnels['date_fin_sejour'])) { ?>
+                <div class="col-4 my-2">
+                    <p class="fw-light mb-0">Date de départ</p>
+                    <p class="fw-bold mb-0"><?= $personnels['date_fin_sejour'] ?></p>
+                </div>
+            <?php } ?>
+            <?php if (isset($personnels['date_debut_sejour'])) { ?>
+                <div class="col-4 my-2">
+                    <p class="fw-light mb-1">Date d'entrée</p>
+                    <p class="fw-bold mb-0"><?= $personnels['date_debut_sejour'] ?></p>
                 </div>
             <?php } ?>
         </section>
