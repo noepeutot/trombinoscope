@@ -93,7 +93,7 @@
                     <p class="fw-bold mb-0">
                         <?php foreach ($responsabilites as $responsabilite) { ?>
                             <span><?= $responsabilite['responsabilite']['responsabilite'] ?></span>
-                            <?php if (next($sejours['financements'])) {
+                            <?php if (next($responsabilites)) {
                                 echo ", ";
                             }
                         } ?>
