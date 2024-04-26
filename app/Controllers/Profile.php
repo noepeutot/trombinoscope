@@ -30,11 +30,11 @@ class Profile extends BaseController
         $insertPersonnels = [];
         $insertResponsabilites = [];
         $insertMails = [];
-        $insertDataEncadrants = [];
         $insertDataSejours = [];
         $insertEmployeurs = [];
         $insertEmployeurSejours = [];
         $insertLocalisations = [];
+        $insertEncadrants = [];
 
         $personnels = $this->getDataFromURLAndID('personnels');
         $personnes = $this->getDataFromURLAndID('personnes');
@@ -42,7 +42,7 @@ class Profile extends BaseController
         $responsabilites = $this->getResponsabilitesFromID('personne_responsabilites');
         $sejours = $this->getSejourFromID('sejours');
 
-        $allEncadrements = $this->getAllDataFromURL('encadrements_en_cours');
+        $allEncadrants = $this->getAllDataFromURL('encadrants');
         $allLocalisations = $this->getAllDataFromURL('localisation_personnels');
         $allPersonnels = $this->getAllDataFromURL('personnels');
         $allSejours = $this->getAllDataFromURL('sejours');
@@ -95,8 +95,8 @@ class Profile extends BaseController
             $insertDataSejours = $allSejours;
         }
 
-        if (isset($allEncadrements)) {
-            $insertEncadrements = $allEncadrements;
+        if (isset($allEncadrants)) {
+            $insertEncadrants = $allEncadrants;
         }
 
         if (isset($sejours)) {
@@ -140,10 +140,10 @@ class Profile extends BaseController
         $this->updateResponsabiliteDB($insertResponsabilites);
         $this->updateMailDB($insertMails);
         $this->updateLocalisationDB($insertLocalisations);
-        $this->updateEncadrementDB($insertEncadrements);
-        $this->updateEmployeurDB($insertEmployeurs);
         $this->updateSejourBD($insertDataSejours);
+        $this->updateEmployeurDB($insertEmployeurs);
         $this->updateEmployeurSejourDB($insertEmployeurSejours);
+        $this->updateEncadrantDB($insertEncadrants);
 
         return view('profile', $data);
     }
@@ -437,60 +437,6 @@ class Profile extends BaseController
     }
 
     /**
-     * Fonction de mise à jour de tous les employeurs en base de données
-     * @param $employeursArray
-     * @return void
-     */
-    public function updateEmployeurDB($employeursArray)
-    {
-        $db = db_connect();
-        $builder = $db->table('employeur');
-
-        if (empty($employeursArray)) {
-            $builder->delete();
-        } else {
-            $result = $builder->select()
-                ->get()
-                ->getResultArray();
-
-            foreach ($result as $employeurBDD) {
-                $employeurKey = array_search($employeurBDD['id_employeur'],
-                    array_column($employeursArray, 'id_org_payeur'));
-                if ($employeurKey === false) {
-                    $builder->where('id_employeur', $employeurBDD['id_employeur'])
-                        ->delete();
-                } else {
-                    $data = [
-                        'id_employeur' => $employeursArray[$employeurKey]['id_org_payeur'],
-                        'nom' => $employeursArray[$employeurKey]['organisme_payeur'],
-                        'nom_court' => $employeursArray[$employeurKey]['nom_court_op']
-                    ];
-                    $builder->set($data);
-                    $builder->where('id_employeur', $employeurBDD['id_employeur'])
-                        ->update();
-                }
-            }
-
-            foreach ($employeursArray as $employeur) {
-                $builder = $db->table('employeur');
-                $insert = [
-                    'id_employeur' => $employeur['id_org_payeur'],
-                    'nom' => $employeur['organisme_payeur'],
-                    'nom_court' => $employeur['nom_court_op']
-                ];
-                $query = $builder->select()
-                    ->where('id_employeur', $employeur['id_org_payeur'])
-                    ->get();
-                $builder->set($insert)->where('id_employeur', $employeur['id_org_payeur']);
-                if ($query->getNumRows() === 0) {
-                    $builder->insert();
-                }
-            }
-            $db->close();
-        }
-    }
-
-    /**
      * Fonction de mise à jour de tous les séjours en base de données
      * @param $sejourAPI
      * @return void
@@ -557,6 +503,60 @@ class Profile extends BaseController
                     $builder->insert();
                 }
 
+            }
+            $db->close();
+        }
+    }
+
+    /**
+     * Fonction de mise à jour de tous les employeurs en base de données
+     * @param $employeursArray
+     * @return void
+     */
+    public function updateEmployeurDB($employeursArray)
+    {
+        $db = db_connect();
+        $builder = $db->table('employeur');
+
+        if (empty($employeursArray)) {
+            $builder->delete();
+        } else {
+            $result = $builder->select()
+                ->get()
+                ->getResultArray();
+
+            foreach ($result as $employeurBDD) {
+                $employeurKey = array_search($employeurBDD['id_employeur'],
+                    array_column($employeursArray, 'id_org_payeur'));
+                if ($employeurKey === false) {
+                    $builder->where('id_employeur', $employeurBDD['id_employeur'])
+                        ->delete();
+                } else {
+                    $data = [
+                        'id_employeur' => $employeursArray[$employeurKey]['id_org_payeur'],
+                        'nom' => $employeursArray[$employeurKey]['organisme_payeur'],
+                        'nom_court' => $employeursArray[$employeurKey]['nom_court_op']
+                    ];
+                    $builder->set($data);
+                    $builder->where('id_employeur', $employeurBDD['id_employeur'])
+                        ->update();
+                }
+            }
+
+            foreach ($employeursArray as $employeur) {
+                $builder = $db->table('employeur');
+                $insert = [
+                    'id_employeur' => $employeur['id_org_payeur'],
+                    'nom' => $employeur['organisme_payeur'],
+                    'nom_court' => $employeur['nom_court_op']
+                ];
+                $query = $builder->select()
+                    ->where('id_employeur', $employeur['id_org_payeur'])
+                    ->get();
+                $builder->set($insert)->where('id_employeur', $employeur['id_org_payeur']);
+                if ($query->getNumRows() === 0) {
+                    $builder->insert();
+                }
             }
             $db->close();
         }
@@ -631,20 +631,78 @@ class Profile extends BaseController
         }
     }
 
+    /**
+     * Fonction de mise à jour de tous les encadrants en base de données
+     * @param $encadrantsAPI
+     * @return void
+     */
+    public function updateEncadrantDB($encadrantsAPI)
+    {
+        $db = db_connect();
+        $builder = $db->table('encadrant');
+
+        if (empty($encadrantsAPI)) {
+            $builder->delete();
+        } else {
+            $result = $builder->select()
+                ->get()
+                ->getResultArray();
+
+            foreach ($result as $encadrantBDD) {
+                $encadrantKey = array_search($encadrantBDD['id_encadrant'],
+                    array_column($encadrantsAPI, 'id_encadrant'));
+                if ($encadrantKey === false) {
+                    $builder->where('id_encadrant', $encadrantBDD['id_encadrant'])
+                        ->delete();
+                } else {
+                    $update = [
+                        'id_encadrant' => $encadrantsAPI[$encadrantKey]['id_encadrant'],
+                        'id_sejour' => $encadrantsAPI[$encadrantKey]['id_sejour'],
+                        'nom' => $encadrantsAPI[$encadrantKey]['nom'],
+                        'prenom' => $encadrantsAPI[$encadrantKey]['prenom']
+                    ];
+
+                    if (isset($encadrantsAPI[$encadrantKey]['personne']['id_personne'])) {
+                        $update += ['id_personne' => $encadrantsAPI[$encadrantKey]['personne']['id_personne']];
+                    } else {
+                        $update += ['id_personne' => NULL];
+                    }
+
+                    $builder->set($update);
+                    $builder->where('id_encadrant', $encadrantBDD['id_encadrant'])
+                        ->update();
+                }
+            }
+
+            foreach ($encadrantsAPI as $encadrant) {
+                $builder = $db->table('encadrant');
+                $insert = [
+                    'id_encadrant' => $encadrant['id_encadrant'],
+                    'id_sejour' => $encadrant['id_sejour'],
+                    'nom' => $encadrant['nom'],
+                    'prenom' => $encadrant['prenom']
+                ];
+
+                if (isset($encadrant['personne']['id_personne'])) {
+                    $insert += ['id_personne' => $encadrant['personne']['id_personne']];
+                } else {
+                    $insert += ['id_personne' => $encadrant['id_personne']];
+                }
+
+                $query = $builder->select()
+                    ->where('id_encadrant', $encadrant['id_encadrant'])
+                    ->get();
+                $builder->set($insert);
+                if ($query->getNumRows() === 0) {
+                    $builder->insert();
+                }
+            }
+            $db->close();
+        }
+    }
+
     public function beautifulPrint($data)
     {
         print("<pre>" . print_r($data, true) . "</pre>");
-    }
-
-    public function updateEncadrementDB($encadrants)
-    {
-        if (empty($encadrants)) {
-            $db = db_connect();
-            $builder = $db->table('');
-
-            dsqdqs ICIiiiiiiiiiiiiiiiiii;')')''''
-            foreach ($encadrants as $encadrant) {
-            }
-        }
     }
 }
