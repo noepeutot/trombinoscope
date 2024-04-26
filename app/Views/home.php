@@ -20,7 +20,7 @@
     }
 
     body {
-        background-image: url("assets/images/wave_main.svg");
+        background-image: url("<?= img_url('wave_main.svg') ?>");
         background-repeat: no-repeat;
     }
 
@@ -39,7 +39,7 @@
 <header class="d-flex justify-content-between align-items-center my-5">
     <h1 class="text-white mx-5">Trombinoscope</h1>
     <button type="button" class="btn btn-light d-flex align-items-center mx-5 px-4">
-        <img class="me-2" src="assets/images/account.svg" alt="compte" width="30px" height="30px">
+        <img class="me-2" src="<?= img_url('account.svg') ?>" alt="compte" width="30px" height="30px">
         <span>Se connecter</span>
     </button>
 </header>
@@ -48,7 +48,7 @@
         <div class="row align-items-center w-100 mb-4">
             <div class="col-3 input-group w-50">
                 <span class="input-group-text border shadow bg-body">
-                    <img class="" src="assets/images/search.svg" alt="statut" width="20px"
+                    <img class="" src="<?= img_url('search.svg') ?>" alt="statut" width="20px"
                          height="20px">
                 </span>
                 <input class="form-control border shadow bg-body" type="search" placeholder="Recherche"
@@ -59,7 +59,7 @@
                     <button class="btn btn-light shadow bg-body dropdown-toggle d-flex align-items-center px-4"
                             type="button" id="statut"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                        <img class="me-2" src="assets/images/statut.svg" alt="statut" width="20px" height="20px">
+                        <img class="me-2" src="<?= img_url('statut.svg') ?>" alt="statut" width="20px" height="20px">
                         <span>Statut</span>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="statut">
@@ -81,7 +81,7 @@
                     <button class="btn btn-light shadow bg-body dropdown-toggle d-flex align-items-center px-4"
                             type="button" id="equipe"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                        <img class="me-2" src="assets/images/group.svg" alt="equipe" width="20px" height="20px">
+                        <img class="me-2" src="<?= img_url('group.svg') ?>" alt="equipe" width="20px" height="20px">
                         <span>Equipe</span>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="equipe">
@@ -103,7 +103,7 @@
                     <button class="btn btn-light shadow bg-body dropdown-toggle d-flex align-items-center px-4"
                             type="button" id="tuteur"
                             data-bs-toggle="dropdown" aria-expanded="false">
-                        <img class="me-2" src="assets/images/user.svg" alt="tuteur" width="20px" height="20px">
+                        <img class="me-2" src="<?= img_url('user.svg') ?>" alt="tuteur" width="20px" height="20px">
                         <span>Tuteur</span>
                     </button>
                     <ul class="dropdown-menu" aria-labelledby="tuteur">
@@ -125,15 +125,15 @@
 </nav>
 <main>
     <div class="d-flex justify-content-center flex-wrap">
-        <?php if (!empty($personnels)) {
-            foreach ($personnels as $value) { ?>
+        <?php if (!empty($personnes)) {
+            foreach ($personnes as $value) { ?>
                 <article>
                     <a class="link-offset-2 link-underline link-underline-opacity-0 card shadow bg-body m-2 p-4"
                        style="width: 14rem;"
                        href="<?=base_url('profile/').$value['id_personne']?>">
-                        <img class="card-img-top" src="assets/images/pp.jpg" height="200px" alt="photographie">
+                        <img class="card-img-top" src="<?= img_url('pp.jpg') ?>" height="200px" alt="photographie">
                         <div class="pb-0 pt-3 object-fit-contain">
-                            <h6 class="card-title text-center mb-0"><?php echo $value["prenom"] . " " . $value["nom_usage"] ?></h6>
+                            <h6 class="card-title text-center mb-0"><?php echo $value["prenom"] . " " . $value["nom"] ?></h6>
                         </div>
                     </a>
                 </article>
