@@ -1,5 +1,6 @@
 <?php
 
+use App\Controllers\Home;
 use App\Controllers\Profile;
 use CodeIgniter\Router\RouteCollection;
 
@@ -9,8 +10,8 @@ use CodeIgniter\Router\RouteCollection;
 
 $routes->setAutoRoute(false);
 
-$routes->get('/', 'Home::index');
+$routes->get('/', [Home::class, 'index']);
 
-$routes->get('/(:any)', 'Home::search/$1');
+$routes->get('/(:segment)', [Home::class, 'search/$1']);
 
 $routes->get('profile/(:num)', [Profile::class, 'index/$1']);

@@ -15,7 +15,8 @@
         "ext-json": "*",
         "ext-mbstring": "*",
         "laminas/laminas-escaper": "^2.9",
-        "psr/log": "^1.1"
+        "psr/log": "^1.1",
+      "ext-curl": "If you use CURLRequest class"
     },
     "require-dev": {
         "codeigniter/coding-standard": "^1.7",
@@ -28,8 +29,7 @@
         "predis/predis": "^1.1 || ^2.0"
     },
     "suggest": {
-        "ext-curl": "If you use CURLRequest class",
-        "ext-dom": "If you use TestResponse",
+      "ext-dom": "If you use TestResponse",
         "ext-exif": "If you run Image class tests",
         "ext-fileinfo": "Improves mime type detection for files",
         "ext-gd": "If you use Image class GDHandler",

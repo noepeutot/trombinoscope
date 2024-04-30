@@ -74,16 +74,6 @@ class Profile extends BaseController
             }
         }
 
-
-        // TODO : A changer, il est préférable de stocker image par image
-        // Vérifie si la pesonne possède une photo, sinon lui attribut une photo par défaut
-        if (isset($personnes['photo'])) {
-            file_put_contents('assets/images/profile_picture.jpg', file_get_contents($personnes['photo']));
-            $data['imageURL'] = 'profile_picture.jpg';
-        } else {
-            $data['imageURL'] = 'default_profile.jpg';
-        }
-
         return view('profile', $data);
     }
 

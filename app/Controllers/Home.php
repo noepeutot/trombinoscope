@@ -10,6 +10,8 @@ use Psr\Log\LoggerInterface;
 class Home extends BaseController
 {
     protected array $personnels;
+
+    protected array $allPersonnels;
     protected APIModel $ApiModel;
 
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
@@ -18,6 +20,10 @@ class Home extends BaseController
         $this->ApiModel = new APIModel();
     }
 
+    // TODO BOUTON RESET
+    // TODO MODEL + style css fichier + dl fichier script
+    // TODO : image stocké en brut et pas en base de données, nom par id de la personne
+
     /**
      * @return string
      */
@@ -25,12 +31,29 @@ class Home extends BaseController
     {
         $this->updateDB();
 
-        $this->personnels = $this->getPersonnes();
+        $this->allPersonnels = $this->getPersonnes();
 
-        $data['statut'] = ['Chercheur', 'Doctorant', 'Enseignant-Chercheur'];
-        $data['equipe'] = ['MAGE', 'MADEO', 'MADEA', 'SYREL'];
-        $data['tuteur'] = ['COUSTEAU Eric', 'POLLET Colette', 'POLIZZI Rachelle', 'ARRIEULA Beatrice'];
+        if ($this->request->getGet('q')
+            || $this->request->getGet('statut[]')
+            || $this->request->getGet('equipe[]')
+            || $this->request->getGet('tuteur[]')) {
+            $query = $this->request->getGet('q');
+            $data['query'] = $query;
+            $statut = $this->request->getGet('statut[]');
+            $equipe = $this->request->getGet('equipe[]');
+            $tuteur = $this->request->getGet('tuteur[]');
+            $this->personnels = $this->search($query, $statut, $equipe, $tuteur);
+        } else {
+            $this->personnels = $this->allPersonnels;
+        }
+
+
+        $data['statut'] = $this->getStatuts();
+        $data['equipe'] = $this->getEquipes();
+        $data['tuteur'] = $this->getEncadrants();
         $data['personnes'] = $this->personnels;
+        $data['allPersonnels'] = $this->allPersonnels;
+
 
         return view('home', $data);
     }
@@ -49,6 +72,9 @@ class Home extends BaseController
         $insertEmployeurSejours = [];
         $insertLocalisations = [];
         $insertEncadrants = [];
+        $insertStatuts = [];
+        $insertEquipes = [];
+        $insertImages = [];
 
         $allEncadrants = $this->getAllDataFromURL('encadrants');
         $allLocalisations = $this->getAllDataFromURL('localisation_personnels');
@@ -58,6 +84,9 @@ class Home extends BaseController
         $allResponsabilites = $this->getAllDataFromURL('personne_responsabilites');
         $allEmployeurs = $this->getAllDataFromURL('org_payeurs');
         $allEmployeur_sejour = $this->getAllDataFromURL('financements');
+        $allStatuts = $this->getAllDataFromURL('statuts');
+        $allEquipes = $this->getAllDataFromURL('groupes');
+        $allPersonnes = $this->getAllDataFromURL('personnes');
 
         if (isset($allPersonnels)) {
             $insertPersonnels = $allPersonnels;
@@ -91,6 +120,21 @@ class Home extends BaseController
             $insertEncadrants = $allEncadrants;
         }
 
+        if (isset($allStatuts)) {
+            $insertStatuts = $allStatuts;
+        }
+
+        if (isset($allEquipes)) {
+            $insertEquipes = $allEquipes;
+        }
+
+        if (isset($allPersonnes)) {
+            foreach ($allPersonnes as $personne) {
+                $insertImages[] = ['id_personne' => $personne['id_personne'],
+                    'photo' => $personne['photo']];
+            }
+        }
+
         $this->updatePersonnelDB($insertPersonnels);
         $this->updateResponsabiliteDB($insertResponsabilites);
         $this->updateMailDB($insertMails);
@@ -99,6 +143,9 @@ class Home extends BaseController
         $this->updateEmployeurDB($insertEmployeurs);
         $this->updateEmployeurSejourDB($insertEmployeurSejours);
         $this->updateEncadrantDB($insertEncadrants);
+        $this->updateStatusDB($insertStatuts);
+        $this->updateEquipeDB($insertEquipes);
+        $this->createProfilePictures($insertImages);
     }
 
     /**
@@ -113,14 +160,14 @@ class Home extends BaseController
 
     /**
      * Fonction de mise à jour de toutes les personnes en base de données
-     * @param $personnesAPI
+     * @param $personnelsAPI
      * @return void
      */
-    public function updatePersonnelDB($personnesAPI)
+    public function updatePersonnelDB($personnelsAPI)
     {
         $db = db_connect();
         $builder = $db->table('personne');
-        if (empty($personnesAPI)) {
+        if (empty($personnelsAPI)) {
             /**
              * contrainte de clé étrangère CASCADE mise sur PERSONNE  TODO : à migrer sur la production
              */
@@ -132,17 +179,17 @@ class Home extends BaseController
 
             foreach ($result as $personne) {
                 $personneKey = array_search($personne['id_personne'],
-                    array_column($personnesAPI, 'id_personne'));
+                    array_column($personnelsAPI, 'id_personne'));
                 if ($personneKey === false) {
                     $builder->where('id_personne', $personne['id_personne'])
                         ->delete();
                 } else {
                     $data = [
-                        'id_personne' => $personnesAPI[$personneKey]['id_personne'],
-                        'nom' => mb_strtoupper($personnesAPI[$personneKey]['nom_usage']),
-                        'prenom' => $personnesAPI[$personneKey]['prenom'],
-                        'statut' => $personnesAPI[$personneKey]['statut'],
-                        'equipe' => $personnesAPI[$personneKey]['equipes']
+                        'id_personne' => $personnelsAPI[$personneKey]['id_personne'],
+                        'nom' => mb_strtoupper($personnelsAPI[$personneKey]['nom_usage']),
+                        'prenom' => $personnelsAPI[$personneKey]['prenom'],
+                        'statut' => $personnelsAPI[$personneKey]['statut'],
+                        'equipe' => $personnelsAPI[$personneKey]['equipes']
                     ];
                     $builder->set($data);
                     $builder->where('id_personne', $personne['id_personne'])
@@ -150,7 +197,7 @@ class Home extends BaseController
                 }
             }
 
-            foreach ($personnesAPI as $personne) {
+            foreach ($personnelsAPI as $personne) {
                 $builder = $db->table('personne');
                 $insert = [
                     'id_personne' => $personne['id_personne'],
@@ -589,39 +636,261 @@ class Home extends BaseController
     }
 
     /**
+     * Fonction de mise à jour de tous les statuts en base de données
+     * @param $statusAPI
+     * @return void
+     */
+    public function updateStatusDB($statusAPI)
+    {
+        $db = db_connect();
+        $builder = $db->table('statut');
+
+        if (empty($statusAPI)) {
+            $builder->delete();
+        } else {
+            $result = $builder->select()
+                ->get()
+                ->getResultArray();
+
+            foreach ($result as $statutDB) {
+                $statutKey = array_search($statutDB['id_statut'],
+                    array_column($statusAPI, 'id_statut'));
+                if ($statutKey === false) {
+                    $builder->where('id_statut', $statutDB['id_statut'])
+                        ->delete();
+                } else {
+                    $data = [
+                        'id_statut' => $statusAPI[$statutKey]['id_statut'],
+                        'statut' => $statusAPI[$statutKey]['statut']
+                    ];
+                    $builder->set($data);
+                    $builder->where('id_statut', $statutDB['id_statut'])
+                        ->update();
+                }
+            }
+
+            foreach ($statusAPI as $statut) {
+                $builder = $db->table('statut');
+                $insert = [
+                    'id_statut' => $statut['id_statut'],
+                    'statut' => $statut['statut']
+                ];
+
+                $query = $builder->select()
+                    ->where('id_statut', $statut['id_statut'])
+                    ->get();
+
+                $builder->set($insert)->where('id_statut', $statut['id_statut']);
+
+                if ($query->getNumRows() === 0) {
+                    $builder->insert();
+                }
+            }
+            $db->close();
+        }
+    }
+
+    /**
+     * Fonction de mise à jour de toutes les équipes en base de données
+     * @param $equipesAPI
+     * @return void
+     */
+    public function updateEquipeDB($equipesAPI)
+    {
+        $db = db_connect();
+        $builder = $db->table('equipe');
+
+        if (empty($equipesAPI)) {
+            $builder->delete();
+        } else {
+            $result = $builder->select()
+                ->get()
+                ->getResultArray();
+
+            foreach ($result as $equpeDB) {
+                $equipeKey = array_search($equpeDB['id_equipe'],
+                    array_column($equipesAPI, 'id_equipe'));
+                if ($equipeKey === false) {
+                    $builder->where('id_equipe', $equpeDB['id_equipe'])
+                        ->delete();
+                } else {
+                    $data = [
+                        'id_equipe' => $equipesAPI[$equipeKey]['id_groupe'],
+                        'nom_court_groupe' => $equipesAPI[$equipeKey]['nom_court_groupe'],
+                        'nom_long_groupe' => $equipesAPI[$equipeKey]['nom_long_groupe']
+                    ];
+                    $builder->set($data);
+                    $builder->where('id_equipe', $equpeDB['id_equipe'])
+                        ->update();
+                }
+            }
+
+            foreach ($equipesAPI as $equipe) {
+                $builder = $db->table('equipe');
+                $insert = [
+                    'id_equipe' => $equipe['id_groupe'],
+                    'nom_court_groupe' => $equipe['nom_court_groupe'],
+                    'nom_long_groupe' => $equipe['nom_long_groupe']
+                ];
+
+                $query = $builder->select()
+                    ->where('id_equipe', $equipe['id_groupe'])
+                    ->get();
+
+                $builder->set($insert)->where('id_equipe', $equipe['id_groupe']);
+
+                if ($query->getNumRows() === 0) {
+                    $builder->insert();
+                }
+            }
+            $db->close();
+        }
+    }
+
+    public function createProfilePictures($profilePictures)
+    {
+        if (empty($profilePictures)) {
+            $data['imageURL'] = 'profile_picture.jpg';
+        } else {
+            foreach ($profilePictures as $profilePicture) {
+                if (isset($profilePicture['photo'])) {
+                    file_put_contents('assets/images/profile/' . $profilePicture['id_personne'] . '.jpg',
+                        file_get_contents($profilePicture['photo']));
+                } else {
+                    file_put_contents('assets/images/profile/' . $profilePicture['id_personne'] . '.jpg',
+                        file_get_contents('assets/images/default_profile.jpg'));
+                }
+            }
+        }
+    }
+
+    /**
+     * Fonction qui permet de retourner les personnes en base de données
      * @return array
      */
     public function getPersonnes(): array
     {
         $db = db_connect();
         $builder = $db->table('personne');
-        return $builder->select()
+        $result = $builder->select()
             ->orderBy('nom')
             ->get()
             ->getResultArray();
+        $db->close();
+        return $result;
     }
 
     /**
      * Fonction qui permet la recherche
      * @param $query
-     * @return string
+     * @param $statuts
+     * @param $equipes
+     * @param $tuteurs
+     * @return array
      */
-    public function search($query)
+    public function search($query, $statuts, $equipes, $tuteurs): array
     {
         $db = db_connect();
         $builder = $db->table('personne');
-        $this->personnels = $builder->select()
-            ->like('nom', $query)
-            ->orlike('prenom', $query)
+        $builder->select();
+
+        // Filtre des noms et des prénoms
+        if (!empty($query)) {
+            $queryString = explode(" ", $query);
+            foreach ($queryString as $char) {
+                $builder->like('nom', $char)
+                    ->orLike('prenom', $char);
+            }
+        }
+
+        // Filtre des status
+        if (!empty($statuts)) {
+            foreach ($statuts as $statut) {
+                $builder->orlike('statut', $statut);
+            }
+        }
+
+        // Filtre des équipes
+        if (!empty($equipes)) {
+            foreach ($equipes as $equipe) {
+                $builder->orlike('equipe', $equipe);
+            }
+        }
+
+        // Filtre des tuteurs
+        if (!empty($tuteurs)) {
+            foreach ($tuteurs as $tuteur) {
+                $fullName = explode(" ", $tuteur);
+                $prenom = $fullName[0];
+                $nom = $fullName[1];
+                $builder->orWhere("id_personne IN 
+                (SELECT s.id_personne 
+                FROM sejour s, encadrant e, personne p 
+                WHERE s.id_sejour=e.id_sejour 
+                AND e.id_personne=p.id_personne 
+                AND p.prenom=" . $db->escape($prenom) . " 
+                AND p.nom=" . $db->escape($nom) . ")");
+            }
+        }
+
+        $result = $builder->orderBy('nom')
+            ->get()
+            ->getResultArray();
+        $db->close();
+        return $result;
+    }
+
+    /**
+     * Fonction qui permet de retourner les statuts en base de données
+     * @return array
+     */
+    public function getStatuts(): array
+    {
+        $db = db_connect();
+        $builder = $db->table('statut');
+        $result = $builder->select()
+            ->orderBy('statut')
+            ->get()
+            ->getResultArray();
+        $db->close();
+        return $result;
+    }
+
+    /**
+     * Fonction qui permet de retourner les équipes en base de données
+     * @return array
+     */
+    public function getEquipes(): array
+    {
+        $db = db_connect();
+        $builder = $db->table('equipe');
+        $result = $builder->select()
+            ->orderBy('nom_court_groupe')
+            ->get()
+            ->getResultArray();
+        $db->close();
+        return $result;
+    }
+
+    /**
+     * Fonction qui permet de retourner les tuteurs en base de données
+     * @return array
+     */
+    public function getEncadrants(): array
+    {
+        $db = db_connect();
+        $builder = $db->table('personne');
+        $result = $builder->select()
+            ->where('id_personne IN (SELECT id_personne FROM encadrant)')
             ->orderBy('nom')
             ->get()
             ->getResultArray();
+        $db->close();
+        return $result;
+    }
 
-        $data['statut'] = ['Chercheur', 'Doctorant', 'Enseignant-Chercheur'];
-        $data['equipe'] = ['MAGE', 'MADEO', 'MADEA', 'SYREL'];
-        $data['tuteur'] = ['COUSTEAU Eric', 'POLLET Colette', 'POLIZZI Rachelle', 'ARRIEULA Beatrice'];
-        $data['personnes'] = $this->personnels;
-
-        return view('home', $data);
+    public function beautifulPrint($data)
+    {
+        print("<pre>" . print_r($data, true) . "</pre>");
     }
 }

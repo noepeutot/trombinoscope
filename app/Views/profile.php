@@ -50,7 +50,7 @@
     <main class="d-flex flex-column justify-content-center align-items-center">
         <section class="d-flex flex-column justify-content-center align-items-center mb-5">
             <img id="profilePicture" class="border border-5 border-light rounded-3"
-                 src="<?= img_url($imageURL) ?>"
+                 src="<?= img_url('profile/'.$personnes['id_personne'].'.jpg') ?>"
                  alt="photographie">
             <h2><?= $personnes['nom_usage'] . ' ' . $personnes['prenom'] ?></h2>
 

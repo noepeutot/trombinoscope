@@ -35,7 +35,6 @@ class APIModel extends Model
         curl_setopt($request, CURLOPT_RETURNTRANSFER, TRUE);
         $resultat = curl_exec($request);
         curl_close($request);
-        $resultat = json_decode($resultat, TRUE);
-        return $resultat;
+        return json_decode($resultat, TRUE);
     }
 }
