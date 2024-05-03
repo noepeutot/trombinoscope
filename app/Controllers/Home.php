@@ -3,9 +3,12 @@
 namespace App\Controllers;
 
 use App\Models\APIModel;
+use App\Models\PersonneModel;
+use App\Models\ResponsabiliteModel;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use Psr\Log\LoggerInterface;
+use ReflectionException;
 
 class Home extends BaseController
 {
@@ -14,18 +17,23 @@ class Home extends BaseController
     protected array $allPersonnels;
     protected APIModel $ApiModel;
 
+    protected PersonneModel $personneModel;
+
+    protected ResponsabiliteModel $responsabiliteModel;
+
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
         parent::initController($request, $response, $logger);
         $this->ApiModel = new APIModel();
+        $this->personneModel = new PersonneModel();
+        $this->responsabiliteModel = new ResponsabiliteModel();
     }
 
-    // TODO BOUTON RESET
-    // TODO MODEL + style css fichier + dl fichier script
-    // TODO : image stocké en brut et pas en base de données, nom par id de la personne
+    // TODO MODEL + style css fichier
 
     /**
      * @return string
+     * @throws ReflectionException
      */
     public function index(): string
     {
@@ -40,20 +48,21 @@ class Home extends BaseController
             $query = $this->request->getGet('q');
             $data['query'] = $query;
             $statut = $this->request->getGet('statut[]');
+            $data['filtreStatut'] = $statut;
             $equipe = $this->request->getGet('equipe[]');
+            $data['filtreEquipe'] = $equipe;
             $tuteur = $this->request->getGet('tuteur[]');
+            $data['filtreTuteur'] = $tuteur;
             $this->personnels = $this->search($query, $statut, $equipe, $tuteur);
         } else {
             $this->personnels = $this->allPersonnels;
         }
-
 
         $data['statut'] = $this->getStatuts();
         $data['equipe'] = $this->getEquipes();
         $data['tuteur'] = $this->getEncadrants();
         $data['personnes'] = $this->personnels;
         $data['allPersonnels'] = $this->allPersonnels;
-
 
         return view('home', $data);
     }
@@ -165,56 +174,42 @@ class Home extends BaseController
      */
     public function updatePersonnelDB($personnelsAPI)
     {
-        $db = db_connect();
-        $builder = $db->table('personne');
         if (empty($personnelsAPI)) {
             /**
-             * contrainte de clé étrangère CASCADE mise sur PERSONNE  TODO : à migrer sur la production
+             * Contrainte de clé étrangère CASCADE mise sur PERSONNE
              */
-            $builder->delete();
+            $this->personneModel->deleteAll();
         } else {
-            $result = $builder->select()
-                ->get()
-                ->getResultArray();
+            $personnesBD = $this->personneModel->getAllPersonnes();
 
-            foreach ($result as $personne) {
-                $personneKey = array_search($personne['id_personne'],
+            foreach ($personnesBD as $personne) {
+                $personneKey = array_search($personne->id_personne,
                     array_column($personnelsAPI, 'id_personne'));
                 if ($personneKey === false) {
-                    $builder->where('id_personne', $personne['id_personne'])
-                        ->delete();
+                    $this->personneModel->deletePersonne($personne->id_personne);
                 } else {
                     $data = [
-                        'id_personne' => $personnelsAPI[$personneKey]['id_personne'],
                         'nom' => mb_strtoupper($personnelsAPI[$personneKey]['nom_usage']),
                         'prenom' => $personnelsAPI[$personneKey]['prenom'],
                         'statut' => $personnelsAPI[$personneKey]['statut'],
                         'equipe' => $personnelsAPI[$personneKey]['equipes']
                     ];
-                    $builder->set($data);
-                    $builder->where('id_personne', $personne['id_personne'])
-                        ->update();
+                    $this->personneModel->updatePersonne($personnelsAPI[$personneKey]['id_personne'], $data);
                 }
             }
 
             foreach ($personnelsAPI as $personne) {
-                $builder = $db->table('personne');
-                $insert = [
+                $data = [
                     'id_personne' => $personne['id_personne'],
                     'nom' => mb_strtoupper($personne['nom_usage']),
                     'prenom' => $personne['prenom'],
                     'statut' => $personne['statut'],
                     'equipe' => $personne['equipes']
                 ];
-                $query = $builder->select()
-                    ->where('id_personne', $personne['id_personne'])
-                    ->get();
-                $builder->set($insert);
-                if ($query->getNumRows() === 0) {
-                    $builder->insert();
+                if (!$this->personneModel->getPersonne($personne['id_personne'])) {
+                    $this->personneModel->insertPersonne($data);
                 }
             }
-            $db->close();
         }
     }
 
@@ -225,50 +220,35 @@ class Home extends BaseController
      */
     public function updateResponsabiliteDB($responsabilitesArray)
     {
-        $db = db_connect();
-        $builder = $db->table('responsabilite');
-
         if (empty($responsabilitesArray)) {
-            $builder->delete();
+            $this->responsabiliteModel->deleteAll();
         } else {
-            $result = $builder->select()
-                ->get()
-                ->getResultArray();
+            $result = $this->responsabiliteModel->getAllResponsabilites();
 
             foreach ($result as $responsabiliteBDD) {
-                $responsabiliteKey = array_search($responsabiliteBDD['id_responsabilite'],
+                $responsabiliteKey = array_search($responsabiliteBDD->id_responsabilite,
                     array_column($responsabilitesArray, 'id_personne_resp'));
                 if ($responsabiliteKey === false) {
-                    $builder->where('id_responsabilite', $responsabiliteBDD['id_responsabilite'])
-                        ->delete();
+                    $this->responsabiliteModel->deleteResponsabilite($responsabiliteBDD->id_responsabilite);
                 } else {
                     $data = [
-                        'id_responsabilite' => $responsabilitesArray[$responsabiliteKey]['id_personne_resp'],
                         'libelle' => $responsabilitesArray[$responsabiliteKey]['responsabilite']['responsabilite'],
                         'id_personne' => $responsabilitesArray[$responsabiliteKey]['personne']['id_personne']
                     ];
-                    $builder->set($data);
-                    $builder->where('id_responsabilite', $responsabiliteBDD['id_responsabilite'])
-                        ->update();
+                    $this->responsabiliteModel->updateResponsabilite($responsabiliteBDD->id_responsabilite, $data);
                 }
             }
 
             foreach ($responsabilitesArray as $responsabilite) {
-                $builder = $db->table('responsabilite');
                 $insert = [
                     'id_responsabilite' => $responsabilite['id_personne_resp'],
                     'libelle' => $responsabilite['responsabilite']['responsabilite'],
                     'id_personne' => $responsabilite['personne']['id_personne']
                 ];
-                $query = $builder->select()
-                    ->where('id_responsabilite', $responsabilite['id_personne_resp'])
-                    ->get();
-                $builder->set($insert)->where('id_responsabilite', $responsabilite['id_personne_resp']);
-                if ($query->getNumRows() === 0) {
-                    $builder->insert();
+                if (!$this->responsabiliteModel->getResponsabilite($responsabilite['id_personne_resp'])) {
+                    $this->responsabiliteModel->insertResponsabilite($insert);
                 }
             }
-            $db->close();
         }
     }
 
@@ -279,6 +259,7 @@ class Home extends BaseController
      */
     public function updateMailDB($mailsArray)
     {
+        //TODO : a faire next  ..
         $db = db_connect();
         $builder = $db->table('mail');
 
@@ -339,34 +320,21 @@ class Home extends BaseController
      */
     public function updateLocalisationDB($localisationsAPI)
     {
-        $db = db_connect();
-        $builder = $db->table('personne');
-
         if (empty($localisationsAPI)) {
             $update = [
                 'telephone' => NULL,
                 'numero_bureau' => NULL
             ];
-            $builder->set($update)
-                ->update();
+            $this->personneModel->updateAll($update);
         } else {
             foreach ($localisationsAPI as $localisation) {
-                $builder = $db->table('personne');
                 $update = [
                     'telephone' => $localisation['tel_professionnel'],
                     'numero_bureau' => $localisation['numero_bureau']
                 ];
 
-                $query = $builder->select()
-                    ->where('id_personne', $localisation['id_personne'])
-                    ->get();
-
-                $builder->set($update)->where('id_personne', $localisation['id_personne']);
-                if ($query->getNumRows() != 0) {
-                    $builder->update();
-                }
+                $this->personneModel->updatePersonne($localisation['id_personne'], $update);
             }
-            $db->close();
         }
     }
 
@@ -381,7 +349,7 @@ class Home extends BaseController
         $builder = $db->table('sejour');
         if (empty($sejourAPI)) {
             /**
-             * TRIGGER sur employeur_sejour mis en place lors du delete d'un séjour (TODO : à migrer sur la production)
+             * TRIGGER sur employeur_sejour mis en place lors du delete d'un séjour
              */
             $builder->delete();
         } else {
@@ -747,10 +715,15 @@ class Home extends BaseController
         }
     }
 
+    /**
+     * Fonction de création des photos de profiles des personnes
+     * @param $profilePictures
+     * @return void
+     */
     public function createProfilePictures($profilePictures)
     {
         if (empty($profilePictures)) {
-            $data['imageURL'] = 'profile_picture.jpg';
+            //TODO : A faire
         } else {
             foreach ($profilePictures as $profilePicture) {
                 if (isset($profilePicture['photo'])) {
@@ -770,14 +743,7 @@ class Home extends BaseController
      */
     public function getPersonnes(): array
     {
-        $db = db_connect();
-        $builder = $db->table('personne');
-        $result = $builder->select()
-            ->orderBy('nom')
-            ->get()
-            ->getResultArray();
-        $db->close();
-        return $result;
+        return $this->personneModel->getAllPersonnes();
     }
 
     /**

@@ -1,0 +1,24 @@
+
+* {
+    /*outline: red dashed 1px;*/
+}
+
+article:hover {
+    transform: scale(0.98);
+    transition: transform 200ms ease-in-out;
+}
+
+a img {
+    object-fit: cover;
+    object-position: top;
+}
+
+.scrollable-menu {
+    height: auto;
+    max-height: 200px;
+    overflow-x: hidden;
+}
+
+datalist {
+    overflow-y: auto !important;
+}
