@@ -6,3 +6,6 @@
 # Datasource local storage ignored files
 /dataSources/
 /dataSources.local.xml
+/jsLibraryMappings.xml
+/dictionaries/peutotn.xml
+/inspectionProfiles/Project_Default.xml
