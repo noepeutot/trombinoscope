@@ -20,14 +20,14 @@
 <header class="d-flex justify-content-between align-items-center my-5">
     <a href="<?= base_url() ?>" class="link-underline link-underline-opacity-0"><h1 class="text-white mx-5">
             Trombinoscope</h1></a>
-    <button type="button" class="btn btn-light d-flex align-items-center mx-5 px-4">
+    <a type="button" class="btn btn-light d-flex align-items-center mx-5 px-4" href="<?=base_url('login')?>">
         <img class="me-2" src="<?= img_url('account.svg') ?>" alt="compte" width="30px" height="30px">
         <span>Se connecter</span>
-    </button>
+    </a>
 </header>
 <nav class="navbar navbar-light">
     <div class="container-fluid d-flex justify-content-start ms-5">
-        <form method="get" class="row align-items-center w-100">
+        <form action="<?= base_url().'search'?>" method="get" class="row align-items-center w-100">
             <div class="col-3 input-group w-35 mb-4">
                 <span class="input-group-text border shadow bg-body">
                     <img class="" src="<?= img_url('search.svg') ?>" alt="statut" width="20px"
@@ -59,13 +59,13 @@
                         <?php if (!empty($statut)) {
                             foreach ($statut as $value) { ?>
                                 <li class="dropdown-item">
-                                    <input id="<?= $value['statut'] ?>" class="form-check-input" type="checkbox"
-                                           value="<?= $value['statut'] ?>" aria-label="Chercheur" name="statut[]"
-                                        <?php if (isset($filtreStatut) && in_array($value['statut'], $filtreStatut))
+                                    <input id="<?= $value->statut ?>" class="form-check-input" type="checkbox"
+                                           value="<?= $value->statut ?>" aria-label="Chercheur" name="statut[]"
+                                        <?php if (isset($filtreStatut) && in_array($value->statut, $filtreStatut))
                                             echo 'checked';
                                         ?>>
-                                    <label for="<?= $value['statut'] ?>"
-                                           class="form-check-label"><?= $value['statut'] ?></label>
+                                    <label for="<?= $value->statut ?>"
+                                           class="form-check-label"><?= $value->statut ?></label>
                                 </li>
                             <?php }
                         } ?>
@@ -84,15 +84,15 @@
                         <?php if (!empty($equipe)) {
                             foreach ($equipe as $value) { ?>
                                 <li class="dropdown-item">
-                                    <input id="<?= $value['nom_court_groupe'] ?>" class="form-check-input"
+                                    <input id="<?= $value->nom_court ?>" class="form-check-input"
                                            type="checkbox"
                                            aria-label="Chercheur" name="equipe[]"
-                                           value="<?= $value['nom_court_groupe'] ?>"
-                                        <?php if (isset($filtreEquipe) && in_array($value['nom_court_groupe'], $filtreEquipe))
+                                           value="<?= $value->nom_court ?>"
+                                        <?php if (isset($filtreEquipe) && in_array($value->nom_court, $filtreEquipe))
                                             echo 'checked';
                                         ?>>
-                                    <label for="<?= $value['nom_court_groupe'] ?>"
-                                           class="form-check-label"><?= $value['nom_court_groupe'] ?></label>
+                                    <label for="<?= $value->nom_court ?>"
+                                           class="form-check-label"><?= $value->nom_court ?></label>
                                 </li>
                             <?php }
                         } ?>
@@ -111,14 +111,14 @@
                         <?php if (!empty($tuteur)) {
                             foreach ($tuteur as $value) { ?>
                                 <li class="dropdown-item">
-                                    <input id="<?= $value['id_personne'] ?>" class="form-check-input" type="checkbox"
+                                    <input id="<?= $value->id_personne ?>" class="form-check-input" type="checkbox"
                                            aria-label="Chercheur" name="tuteur[]"
-                                           value="<?= $value['prenom'] . ' ' . $value['nom'] ?>"
-                                        <?php if (isset($filtreTuteur) && in_array($value['prenom'] . ' ' . $value['nom'], $filtreTuteur))
+                                           value="<?= $value->prenom . ' ' . $value->nom ?>"
+                                        <?php if (isset($filtreTuteur) && in_array($value->prenom . ' ' . $value->nom, $filtreTuteur))
                                             echo 'checked';
                                         ?>>
-                                    <label for="<?= $value['id_personne'] ?>"
-                                           class="form-check-label"><?= $value['prenom'] . ' ' . $value['nom'] ?></label>
+                                    <label for="<?= $value->id_personne ?>"
+                                           class="form-check-label"><?= $value->prenom . ' ' . $value->nom ?></label>
                                 </li>
                             <?php }
                         } ?>
@@ -126,7 +126,7 @@
                 </div>
             </div>
             <div class="col-auto mb-4">
-                <button id="reset" type="button" class="btn btn-danger btn-sm">Réinitialiser les filtres</button>
+                <a id="reset" type="button" class="btn btn-danger btn-sm" href="<?=base_url()?>">Réinitialiser les filtres</a>
             </div>
         </form>
     </div>
@@ -138,12 +138,12 @@
                 <article>
                     <a class="link-offset-2 link-underline link-underline-opacity-0 card shadow bg-body m-2 p-4"
                        style="width: 14rem;"
-                       href="<?= base_url('profile/') . $value['id_personne'] ?>">
-                        <img class="card-img-top" src="<?= img_url('profile/' . $value['id_personne'] . '.jpg') ?>"
+                       href="<?= base_url('profile/') . $value->id_personne ?>">
+                        <img class="card-img-top" src="<?= img_url('profile/' . $value->id_personne . '.jpg') ?>"
                              height="200px"
                              alt="photographie">
                         <div class="pb-0 pt-3 object-fit-contain">
-                            <h6 class="card-title text-center mb-0"><?= $value['prenom'] . " " . $value['nom'] ?></h6>
+                            <h6 class="card-title text-center mb-0"><?= $value->prenom . " " . $value->nom ?></h6>
                         </div>
                     </a>
                 </article>

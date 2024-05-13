@@ -2,14 +2,14 @@ const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]
 const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
 
 let inputCheckbox = $('input:checkbox');
-let buttonReset = $('#reset:button');
+let buttonReset = $('#reset:link');
 
 $(document).ready(function () {
     checkCheckbox();
 
     buttonReset.click(function () {
         inputCheckbox.prop('checked', false);
-        $(this).fadeOut(200);
+        $(this).hide();
     });
 
     $('.form-check-input').change(checkCheckbox);

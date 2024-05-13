@@ -76,6 +76,15 @@ class ResponsabiliteModel extends Model
     }
 
     /**
+     * @param int $id_personne
+     * @return array
+     */
+    public function getResponsabilitePersonne(int $id_personne): array
+    {
+        return $this->where('id_personne', $id_personne)->find();
+    }
+
+    /**
      * Fonction qui ajoute une nouvelle responsabilite
      */
     public function insertResponsabilite(array $data): bool

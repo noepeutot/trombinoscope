@@ -1,6 +1,7 @@
 <?php
 
 use App\Controllers\Home;
+use App\Controllers\Login;
 use App\Controllers\Profile;
 use CodeIgniter\Router\RouteCollection;
 
@@ -12,6 +13,8 @@ $routes->setAutoRoute(false);
 
 $routes->get('/', [Home::class, 'index']);
 
-$routes->get('/(:segment)', [Home::class, 'search/$1']);
+$routes->get('search?(:segment)', [Home::class, 'index/$1']);
 
 $routes->get('profile/(:num)', [Profile::class, 'index/$1']);
+
+$routes->match(['GET', 'POST'], 'login', [Login::class, 'index']);
