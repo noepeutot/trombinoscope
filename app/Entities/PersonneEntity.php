@@ -8,11 +8,12 @@ class PersonneEntity extends Entity
 {
     protected $casts = [
         'id_personne' => 'int',
+        'login' => 'string',
+        'role' => 'string',
         'nom' => 'string',
         'prenom' => 'string',
         'telephone' => 'string',
         'statut' => 'string',
-        'equipe' => 'string',
-        'numero_bureau' => 'string'
+        'bureau' => 'string'
     ];
 }

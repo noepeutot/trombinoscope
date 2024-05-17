@@ -80,6 +80,21 @@ class EquipeModel extends Model
     }
 
     /**
+     * Fonction qui permet de retourner les équipes de la personne à partir de son id
+     * @param int $id_personne
+     * @return array|object|null
+     */
+    public function getEquipePersonne(int $id_personne)
+    {
+        return $this->where('id_equipe IN 
+        (SELECT e.id_equipe 
+        FROM equipe e, rattachement r, sejour s
+        WHERE e.id_equipe=r.id_equipe
+        AND r.id_sejour=s.id_sejour
+        AND s.id_personne='. $id_personne.')')->find();
+    }
+
+    /**
      * Fonction qui ajoute une nouvelle équipe
      */
     public function insertEquipe(array $data): bool

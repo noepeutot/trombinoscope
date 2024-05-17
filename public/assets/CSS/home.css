@@ -17,6 +17,10 @@ a img {
     object-position: top;
 }
 
+.img-nav {
+    width: 20px;
+}
+
 .scrollable-menu {
     height: auto;
     max-height: 200px;
@@ -25,4 +29,9 @@ a img {
 
 datalist {
     overflow-y: auto !important;
+}
+
+#accountImage {
+    border-radius: 50%;
+    width: 35px;
 }

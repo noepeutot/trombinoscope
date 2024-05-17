@@ -16,7 +16,8 @@
         "ext-mbstring": "*",
         "laminas/laminas-escaper": "^2.9",
         "psr/log": "^1.1",
-      "ext-curl": "If you use CURLRequest class"
+      "ext-curl": "If you use CURLRequest class",
+      "ext-ldap": "*"
     },
     "require-dev": {
         "codeigniter/coding-standard": "^1.7",

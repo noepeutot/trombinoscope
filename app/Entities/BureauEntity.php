@@ -4,10 +4,10 @@ namespace App\Entities;
 
 use CodeIgniter\Entity\Entity;
 
-class StatutEntity extends Entity
+class BureauEntity extends Entity
 {
     protected $casts = [
-        'id_statut' => 'int',
-        'nom' => 'string'
+        'id_bureau' => 'int',
+        'numero' => 'string'
     ];
 }

@@ -17,12 +17,13 @@ class PersonneModel extends Model
 
     protected $allowedFields = [
         'id_personne',
+        'login',
+        'role',
         'nom',
         'prenom',
         'telephone',
         'statut',
-        'equipe',
-        'numero_bureau'];
+        'bureau'];
 
     public function __construct()
     {
@@ -37,6 +38,12 @@ class PersonneModel extends Model
     public function getPersonne(int $id_personne)
     {
         return $this->where('id_personne', $id_personne)->first();
+    }
+
+    public function getPersonneLogin(string $login)
+    {
+        return $this->where('login', $login)
+            ->first();
     }
 
     /**
@@ -215,5 +222,51 @@ class PersonneModel extends Model
             AND e.id_sejour=s.id_sejour
             AND s.id_personne=p.id_personne)")
             ->find();
+    }
+
+    /**
+     * Fonction qui vérifie le couple login/mdp.
+     * Retourne true si l’authentification est bonne.
+     * @param $username
+     * @param $passwd
+     * @return bool
+     */
+    function authValidateUser($username, $passwd): bool
+    {
+        $ldap_host[] = 'dc2016-1.g2elab.grenoble-inp.fr';
+        $ldap_host[] = 'dc2019-1.g2elab.grenoble-inp.fr';
+        $ldap_base_dn[] = 'OU=Utilisateurs,DC=g2elab,DC=local';
+        $ldap_base_dn[] = 'CN=Users,DC=g2elab,DC=local';
+
+        // Allow non-ascii in username & password.
+        $username=utf8_decode($username);
+        $passwd=utf8_decode($passwd);
+
+        if(empty($username)||empty($passwd))
+            return false;
+
+        // On essaie de se connecter au premier serveur disponible.
+        $bon=false;
+        foreach($ldap_host as $host)
+        {
+            if($ldap = ldap_connect ($host))
+            {
+                $bon=true;
+                break;
+            }
+        }
+        if(!$bon) return false;
+
+        // On teste le login/mot de passe
+        foreach( $ldap_base_dn as $base_dn)
+        {
+            if (@ldap_bind($ldap, 'CN='.$username.','.$base_dn, $passwd))
+            {
+                @ldap_unbind($ldap);
+                return True;
+            }
+        }
+        // DN not found or password wrong.
+        return False;
     }
 }

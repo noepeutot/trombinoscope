@@ -17,7 +17,7 @@ class StatutModel extends Model
 
     protected $allowedFields = [
         'id_statut',
-        'statut'
+        'nom'
     ];
 
     public function __construct()
@@ -71,11 +71,25 @@ class StatutModel extends Model
     /**
      * Fonction qui permet de retourner un statut à partir de son id
      * @param int $id_statut
-     * @return array
+     * @return object|null
      */
-    public function getStatut(int $id_statut): array
+    public function getStatut(int $id_statut): ?object
     {
-        return $this->where('id_statut', $id_statut)->find();
+        return $this->where('id_statut', $id_statut)->first();
+    }
+
+    /**
+     * Fonction qui retourne le statut d’une personne à partir de son id
+     * @param int $id_personne
+     * @return array|object|null
+     */
+    public function getStatutPersonne(int $id_personne)
+    {
+        return $this->where('id_statut IN 
+        (SELECT s.id_statut 
+        FROM statut s, personne p 
+        WHERE s.id_statut=p.statut
+        AND p.id_personne='. $id_personne.')')->first();
     }
 
     /**

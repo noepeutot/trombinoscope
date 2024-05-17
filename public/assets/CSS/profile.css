@@ -12,3 +12,16 @@ article:hover {
     object-position: top;
     height: 200px;
 }
+
+.img-nav {
+    width: 20px;
+}
+
+#accountImage {
+    border-radius: 50%;
+    width: 35px;
+}
+
+#back img {
+    width: 20px;
+}

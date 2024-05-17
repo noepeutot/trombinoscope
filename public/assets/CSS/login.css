@@ -2,3 +2,7 @@
 * {
     /*outline: red dashed 1px;*/
 }
+
+#display-pw, #show {
+    display: none;
+}

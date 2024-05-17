@@ -12,22 +12,18 @@
 </head>
 <style>
     body {
-        background-image: url("<?= img_url('wave_main.svg') ?>");
-        background-repeat: no-repeat;
+        background: url("<?= img_url('wave_main.svg') ?>") no-repeat top;
+        -webkit-background-size: 100% auto;
+        -moz-background-size: 100% auto;
+        -o-background-size: 100% auto;
+        background-size: 100% auto;
     }
 </style>
 <body>
-<header class="d-flex justify-content-between align-items-center my-5">
-    <a href="<?= base_url() ?>" class="link-underline link-underline-opacity-0"><h1 class="text-white mx-5">
-            Trombinoscope</h1></a>
-    <a type="button" class="btn btn-light d-flex align-items-center mx-5 px-4" href="<?=base_url('login')?>">
-        <img class="me-2" src="<?= img_url('account.svg') ?>" alt="compte" width="30px" height="30px">
-        <span>Se connecter</span>
-    </a>
-</header>
-<nav class="navbar navbar-light">
+<?= $this->include('header') ?>
+<nav class="navbar navbar-light mt-5">
     <div class="container-fluid d-flex justify-content-start ms-5">
-        <form action="<?= base_url().'search'?>" method="get" class="row align-items-center w-100">
+        <form action="<?= base_url() . 'search' ?>" method="get" class="row align-items-center w-100">
             <div class="col-3 input-group w-35 mb-4">
                 <span class="input-group-text border shadow bg-body">
                     <img class="" src="<?= img_url('search.svg') ?>" alt="statut" width="20px"
@@ -40,7 +36,9 @@
                     echo $query; ?>">
                 <datalist id="listePersonnel">
                     <?php if (isset($allPersonnels)) {
-                    foreach ($allPersonnels as $personne) { ?>
+                    foreach ($allPersonnels
+
+                    as $personne) { ?>
                     <option class="autocomplete" value="<?= $personne->prenom . ' ' . $personne->nom ?>">
                         <?php }
                         } ?>
@@ -126,7 +124,8 @@
                 </div>
             </div>
             <div class="col-auto mb-4">
-                <a id="reset" type="button" class="btn btn-danger btn-sm" href="<?=base_url()?>">Réinitialiser les filtres</a>
+                <a id="reset" type="button" class="btn btn-danger btn-sm" href="<?= base_url() ?>">Réinitialiser les
+                    filtres</a>
             </div>
         </form>
     </div>
@@ -134,12 +133,14 @@
 <main>
     <div class="d-flex justify-content-center flex-wrap">
         <?php if (!empty($personnes)) {
+            $baseUrl = base_url('profile/');
+            $imgUrl = img_url('profile/');
             foreach ($personnes as $value) { ?>
                 <article>
                     <a class="link-offset-2 link-underline link-underline-opacity-0 card shadow bg-body m-2 p-4"
                        style="width: 14rem;"
-                       href="<?= base_url('profile/') . $value->id_personne ?>">
-                        <img class="card-img-top" src="<?= img_url('profile/' . $value->id_personne . '.jpg') ?>"
+                       href="<?= $baseUrl . $value->id_personne ?>">
+                        <img class="card-img-top" src="<?=  $imgUrl . $value->id_personne . '.jpg' ?>"
                              height="200px"
                              alt="photographie">
                         <div class="pb-0 pt-3 object-fit-contain">

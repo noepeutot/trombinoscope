@@ -3,18 +3,22 @@
 namespace App\Controllers;
 
 use App\Models\APIModel;
+use App\Models\BureauModel;
 use App\Models\EmployeurModel;
 use App\Models\EncadrantModel;
 use App\Models\EquipeModel;
 use App\Models\FinancementModel;
 use App\Models\MailModel;
 use App\Models\PersonneModel;
+use App\Models\RattachementModel;
 use App\Models\ResponsabiliteModel;
 use App\Models\SejourModel;
 use App\Models\StatutModel;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\I18n\Time;
+use CodeIgniter\Session\Session;
+use Config\Services;
 use Exception;
 use Psr\Log\LoggerInterface;
 
@@ -32,6 +36,10 @@ class Home extends BaseController
     protected EncadrantModel $encadrantModel;
     protected StatutModel $statutModel;
     protected EquipeModel $equipeModel;
+    protected BureauModel $bureauModel;
+    protected RattachementModel $rattachementModel;
+    protected Session $session;
+
 
     public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
@@ -46,14 +54,23 @@ class Home extends BaseController
         $this->encadrantModel = new EncadrantModel();
         $this->statutModel = new StatutModel();
         $this->equipeModel = new EquipeModel();
+        $this->bureauModel = new BureauModel();
+        $this->rattachementModel = new RattachementModel();
+        $this->session = Services::session();
     }
 
-    /**
-     * @return string
-     */
-    public function index(): string
+    //TODO : faire les en cours, prendre séjours actuels ...
+    public function index()
     {
-//        $this->updateDB();
+        $this->updateDB();
+
+        $user = $this->session->get('user');
+        if ($user) {
+            $personneConnectee = $this->personneModel->getPersonneLogin($user['login']);
+            if ($personneConnectee) {
+                $data['personneConnectee'] = $personneConnectee;
+            }
+        }
 
         $this->allPersonnels = $this->getPersonnes();
 
@@ -90,11 +107,12 @@ class Home extends BaseController
     public function updateDB()
     {
         $insertImages = [];
+        $insertLogin = [];
 
+        $allPersonnels = $this->getAllDataFromURL('personnels_en_cours');
+        $allSejours = $this->getAllDataFromURL('sejours');
         $allEncadrants = $this->getAllDataFromURL('encadrants');
         $allLocalisations = $this->getAllDataFromURL('localisation_personnels');
-        $allPersonnels = $this->getAllDataFromURL('personnels');
-        $allSejours = $this->getAllDataFromURL('sejours');
         $allMails = $this->getAllDataFromURL('mails_pro');
         $allResponsabilites = $this->getAllDataFromURL('personne_responsabilites');
         $allEmployeurs = $this->getAllDataFromURL('org_payeurs');
@@ -102,6 +120,16 @@ class Home extends BaseController
         $allEquipes = $this->getAllDataFromURL('groupes');
         $allPersonnes = $this->getAllDataFromURL('personnes');
         $allFinancements = $this->getAllDataFromURL('financements');
+        $allBureaux = $this->getAllDataFromURL('bureaux');
+        $allRattachements = $this->getAllDataFromURL('rattachements');
+
+        if (isset($allBureaux)) {
+            $this->updateBureauDB($allBureaux);
+        }
+
+        if (isset($allStatuts)) {
+            $this->updateStatusDB($allStatuts);
+        }
 
         if (isset($allPersonnels)) {
             $this->updatePersonnelDB($allPersonnels);
@@ -131,10 +159,6 @@ class Home extends BaseController
             $this->updateEncadrantDB($allEncadrants);
         }
 
-        if (isset($allStatuts)) {
-            $this->updateStatusDB($allStatuts);
-        }
-
         if (isset($allEquipes)) {
             $this->updateEquipeDB($allEquipes);
         }
@@ -143,12 +167,19 @@ class Home extends BaseController
             $this->updateFinancementDB($allFinancements);
         }
 
+        if (isset($allRattachements)) {
+            $this->updateRattachementDB($allRattachements);
+        }
+
         if (isset($allPersonnes)) {
             foreach ($allPersonnes as $personne) {
                 $insertImages[] = ['id_personne' => $personne['id_personne'],
                     'photo' => $personne['photo']];
+                $insertLogin[] = ['id_personne' => $personne['id_personne'],
+                    'login' => $personne['info_prof']['login_unite']];
             }
             $this->createProfilePictures($insertImages);
+            $this->updateLoginDB($insertLogin);
         }
     }
 
@@ -160,6 +191,77 @@ class Home extends BaseController
     public function getAllDataFromURL($url)
     {
         return $this->ApiModel->getDataFromURL($url);
+    }
+
+    public function updateBureauDB($bureauAPI)
+    {
+        if (empty($bureauAPI)) {
+            $this->bureauModel->deleteAll();
+        } else {
+            $result = $this->bureauModel->getAllBureaux();
+
+            foreach ($result as $bureauBDD) {
+                $bureauKey = array_search($bureauBDD->id_bureau,
+                    array_column($bureauAPI, 'id_bureau'));
+                if ($bureauKey === false) {
+                    $this->bureauModel->deleteBureau($bureauBDD->id_mail);
+                } else {
+                    $data = [
+                        'numero' => $bureauAPI[$bureauKey]['numero_bureau']
+                    ];
+                    $this->bureauModel->updateBureau($bureauBDD->id_bureau, $data);
+                }
+            }
+
+            foreach ($bureauAPI as $bureau) {
+                $insert = [
+                    'id_bureau' => $bureau['id_bureau'],
+                    'numero' => $bureau['numero_bureau']
+                ];
+
+                if (!$this->bureauModel->getBureau($bureau['id_bureau'])) {
+                    $this->bureauModel->insertBureau($insert);
+                }
+
+            }
+        }
+    }
+
+    /**
+     * Fonction de mise à jour de tous les statuts en base de données
+     * @param $statusAPI
+     * @return void
+     */
+    public function updateStatusDB($statusAPI)
+    {
+        if (empty($statusAPI)) {
+            $this->statutModel->deleteAll();
+        } else {
+            $result = $this->statutModel->getAllStatuts();
+
+            foreach ($result as $statutDB) {
+                $statutKey = array_search($statutDB->id_statut,
+                    array_column($statusAPI, 'statut'));
+                if ($statutKey === false) {
+                    $this->statutModel->deleteStatut($statutDB->id_statut);
+                } else {
+                    $update = [
+                        'nom' => $statusAPI[$statutKey]['statut']
+                    ];
+                    $this->statutModel->updateStatut($statutDB->id_statut, $update);
+                }
+            }
+
+            foreach ($statusAPI as $statut) {
+                $insert = [
+                    'id_statut' => $statut['id_statut'],
+                    'nom' => $statut['statut']
+                ];
+                if (!$this->statutModel->getStatut($statut['id_statut'])) {
+                    $this->statutModel->insertStatut($insert);
+                }
+            }
+        }
     }
 
     /**
@@ -186,8 +288,6 @@ class Home extends BaseController
                     $data = [
                         'nom' => mb_strtoupper($personnelsAPI[$personneKey]['nom_usage']),
                         'prenom' => $personnelsAPI[$personneKey]['prenom'],
-                        'statut' => $personnelsAPI[$personneKey]['statut'],
-                        'equipe' => $personnelsAPI[$personneKey]['equipes']
                     ];
                     $this->personneModel->updatePersonne($personnelsAPI[$personneKey]['id_personne'], $data);
                 }
@@ -196,10 +296,9 @@ class Home extends BaseController
             foreach ($personnelsAPI as $personne) {
                 $data = [
                     'id_personne' => $personne['id_personne'],
+                    'role' => 'normal',
                     'nom' => mb_strtoupper($personne['nom_usage']),
                     'prenom' => $personne['prenom'],
-                    'statut' => $personne['statut'],
-                    'equipe' => $personne['equipes']
                 ];
                 if (!$this->personneModel->getPersonne($personne['id_personne'])) {
                     $this->personneModel->insertPersonne($data);
@@ -218,14 +317,28 @@ class Home extends BaseController
         if (empty($localisationsAPI)) {
             $update = [
                 'telephone' => NULL,
-                'numero_bureau' => NULL
+                'bureau' => NULL
             ];
             $this->personneModel->updateAll($update);
         } else {
+            $result = $this->personneModel->getAllPersonnes();
+
+            foreach ($result as $localisationsBDD) {
+                $localisationKey = in_array($localisationsBDD->id_personne,
+                    array_column($localisationsAPI, 'id_personne'));
+                if ($localisationKey === false) {
+                    $update = [
+                        'telephone' => NULL,
+                        'bureau' => NULL
+                    ];
+                    $this->personneModel->updatePersonne($localisationsBDD->id_personne, $update);
+                }
+            }
+
             foreach ($localisationsAPI as $localisation) {
                 $update = [
                     'telephone' => $localisation['tel_professionnel'],
-                    'numero_bureau' => $localisation['numero_bureau']
+                    'bureau' => $localisation['id_bureau']
                 ];
 
                 $this->personneModel->updatePersonne($localisation['id_personne'], $update);
@@ -339,7 +452,7 @@ class Home extends BaseController
             }
 
             foreach ($mailsAPI as $mail) {
-                if ($mail['type_mail']['type_mail']!='Perso') {
+                if ($mail['type_mail']['type_mail'] != 'Perso') {
                     $insert = [
                         'id_mail' => $mail['id_mail'],
                         'libelle' => $mail['mail'],
@@ -388,6 +501,11 @@ class Home extends BaseController
                         $update += ['sujet' => $sejourAPI[$sejourKey]['stage']['sujet_stage']];
                     }
                     $this->sejourModel->updateSejour($sejourBDD->id_sejour, $update);
+
+                    if (isset($sejourAPI[$sejourKey]['statut']['id_statut']) && isset($sejourAPI[$sejourKey]['personne']['id_personne'])) {
+                        $updateStatut = ['statut' => $sejourAPI[$sejourKey]['statut']['id_statut']];
+                        $this->personneModel->updatePersonne($sejourAPI[$sejourKey]['personne']['id_personne'], $updateStatut);
+                    }
                 }
             }
 
@@ -461,43 +579,6 @@ class Home extends BaseController
 
                 if (!$this->encadrantModel->getEncadrant($encadrant['id_encadrant'])) {
                     $this->encadrantModel->insertEncadrant($insert);
-                }
-            }
-        }
-    }
-
-    /**
-     * Fonction de mise à jour de tous les statuts en base de données
-     * @param $statusAPI
-     * @return void
-     */
-    public function updateStatusDB($statusAPI)
-    {
-        if (empty($statusAPI)) {
-            $this->statutModel->deleteAll();
-        } else {
-            $result = $this->statutModel->getAllStatuts();
-
-            foreach ($result as $statutDB) {
-                $statutKey = array_search($statutDB->id_statut,
-                    array_column($statusAPI, 'id_statut'));
-                if ($statutKey === false) {
-                    $this->statutModel->deleteStatut($statutDB->id_statut);
-                } else {
-                    $update = [
-                        'statut' => $statusAPI[$statutKey]['statut']
-                    ];
-                    $this->statutModel->updateStatut($statutDB->id_statut, $update);
-                }
-            }
-
-            foreach ($statusAPI as $statut) {
-                $insert = [
-                    'id_statut' => $statut['id_statut'],
-                    'statut' => $statut['statut']
-                ];
-                if (!$this->statutModel->getStatut($statut['id_statut'])) {
-                    $this->statutModel->insertStatut($insert);
                 }
             }
         }
@@ -584,6 +665,47 @@ class Home extends BaseController
     }
 
     /**
+     * Fonction qui met à jour tous les rattachements en base de données
+     * @param $rattachementsAPI
+     * @return void
+     */
+    public function updateRattachementDB($rattachementsAPI)
+    {
+        if (empty($rattachementsAPI)) {
+            $this->rattachementModel->deleteAll();
+        } else {
+            $result = $this->rattachementModel->getAllRattachements();
+
+            foreach ($result as $rattachementBDD) {
+                $rattachementKey = array_search($rattachementBDD->id_rattachement,
+                    array_column($rattachementsAPI, 'id_rattachement'));
+                if ($rattachementKey === false) {
+                    $this->rattachementModel->deleteRattachement($rattachementBDD->id_rattachement);
+                } else {
+                    $update = [
+                        'id_sejour' => $rattachementsAPI[$rattachementKey]['id_sejour'],
+                        'id_equipe' => $rattachementsAPI[$rattachementKey]['id_groupe']
+                    ];
+
+                    $this->rattachementModel->updateRattachement($rattachementBDD->id_rattachement, $update);
+                }
+            }
+
+            foreach ($rattachementsAPI as $rattachement) {
+                $insert = [
+                    'id_rattachement' => $rattachement['id_rattachement'],
+                    'id_sejour' => $rattachement['id_sejour'],
+                    'id_equipe' => $rattachement['id_groupe']
+                ];
+
+                if (!$this->rattachementModel->getRattachement($rattachement['id_rattachement'])) {
+                    $this->rattachementModel->insertRattachement($insert);
+                }
+            }
+        }
+    }
+
+    /**
      * Fonction de création des photos de profile des personnes
      * @param $profilePicturesAPI
      * @return void
@@ -617,6 +739,29 @@ class Home extends BaseController
                     file_put_contents('assets/images/profile/' . $profilePicture['id_personne'] . '.jpg',
                         file_get_contents('assets/images/default_profile.jpg'));
                 }
+            }
+        }
+    }
+
+    /**
+     * Fonction de mse à jour de tous les logins des personnes en base de données
+     * @param $loginAPI
+     * @return void
+     */
+    public function updateLoginDB($loginAPI)
+    {
+        if (empty($loginAPI)) {
+            $update = [
+                'login' => NULL
+            ];
+            $this->personneModel->updateAll($update);
+        } else {
+            foreach ($loginAPI as $login) {
+                $update = [
+                    'login' => $login['login']
+                ];
+
+                $this->personneModel->updatePersonne($login['id_personne'], $update);
             }
         }
     }

@@ -12,21 +12,15 @@
 </head>
 <style>
     body {
-        background-image: url("<?= img_url('wave_main.svg') ?>");
-        background-repeat: no-repeat;
+        background: url("<?= img_url('wave_main.svg') ?>") no-repeat top;
+        -webkit-background-size: 100% auto;
+        -moz-background-size: 100% auto;
+        -o-background-size: 100% auto;
+        background-size: 100% auto;
     }
 </style>
 <body>
-<header class="d-flex justify-content-between align-items-center my-5">
-    <a type="button" class="btn btn-light d-flex align-items-center mx-5 px-4" href="javascript:history.back()">
-        <img class="me-2" src="<?= img_url('back_arrow.svg') ?>" alt="retour" height="20px">
-        <span>Retour</span>
-    </a>
-    <a type="button" class="btn btn-light d-flex align-items-center mx-5 px-4" href="<?=base_url('login')?>">
-        <img class="me-2" src="<?= img_url('account.svg') ?>" alt="compte" width="30px" height="30px">
-        <span>Se connecter</span>
-    </a>
-</header>
+<?= $this->include('header') ?>
 <?php if (isset($personne)) { ?>
     <main class="d-flex flex-column justify-content-center align-items-center">
         <section class="d-flex flex-column justify-content-center align-items-center mb-5">
@@ -49,16 +43,23 @@
         </section>
 
         <section class="row d-flex flex-row justify-content-between w-75">
-            <?php if (isset($personne->statut)) { ?>
-            <div class="col-4 my-2">
-                <p class="fw-light mb-1">Catégorie</p>
-                <p class="fw-bold mb-0"><?= $personne->statut ?></p>
-            </div>
+            <?php if (isset($statut)) { ?>
+                <div class="col-4 my-2">
+                    <p class="fw-light mb-1">Catégorie</p>
+                    <p class="fw-bold mb-0"><?= $statut->nom ?></p>
+                </div>
             <?php } ?>
-            <?php if (isset($personne->equipe)) { ?>
+            <?php if (isset($equipes)) { ?>
                 <div class="col-4 my-2">
                     <p class="fw-light mb-1">Equipe de rattachement</p>
-                    <p class="fw-bold mb-0"><?= $personne->equipe ?></p>
+                    <p class="fw-bold mb-0">
+                        <?php foreach ($equipes as $equipe) { ?>
+                            <span><?= $equipe->nom_court ?></span>
+                            <?php if (next($equipes)) {
+                                echo ", ";
+                            }
+                        } ?>
+                    </p>
                 </div>
             <?php } ?>
             <?php if (isset($sejour->sujet)) { ?>
@@ -81,10 +82,10 @@
                     </p>
                 </div>
             <?php } ?>
-            <?php if (isset($personne->numero_bureau)) { ?>
+            <?php if (isset($bureau)) { ?>
                 <div class="col-4 my-2">
                     <p class="fw-light mb-1">Bureau</p>
-                    <p class="fw-bold mb-0"><?= $personne->numero_bureau ?></p>
+                    <p class="fw-bold mb-0"><?= $bureau->numero ?></p>
                 </div>
             <?php } ?>
             <?php if (!empty($employeurs)) { ?>
