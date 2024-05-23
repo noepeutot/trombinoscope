@@ -9,6 +9,7 @@ use App\Models\EncadrantModel;
 use App\Models\EquipeModel;
 use App\Models\FinancementModel;
 use App\Models\MailModel;
+use App\Models\ModificationModel;
 use App\Models\PersonneModel;
 use App\Models\ResponsabiliteModel;
 use App\Models\SejourModel;
@@ -33,6 +34,7 @@ class Profile extends BaseController
     protected StatutModel $statutModel;
     protected BureauModel $bureauModel;
     protected EquipeModel $equipeModel;
+    protected ModificationModel $modificationModel;
 
     protected Session $session;
 
@@ -50,10 +52,12 @@ class Profile extends BaseController
         $this->statutModel = new StatutModel();
         $this->bureauModel = new BureauModel();
         $this->equipeModel = new EquipeModel();
+        $this->modificationModel = new ModificationModel();
 
         $this->session = Services::session();
     }
 
+    //TODO : commentaire pour modif
     public function index($id): string
     {
         return $this->profile($id);
@@ -63,7 +67,7 @@ class Profile extends BaseController
      * @param $id
      * @return string
      */
-    public function profile($id)
+    public function profile($id): string
     {
         $data = [];
 
@@ -78,7 +82,7 @@ class Profile extends BaseController
         $this->personneID = $id;
 
         $personne = $this->personneModel->getPersonne($this->personneID);
-        $mail = $this->mailModel->getMailPersonne($this->personneID);
+        $mails = $this->mailModel->getMailPersonne($this->personneID);
 
         $employeurs = $this->employeurModel->getEmployeurPersonne($this->personneID);
 
@@ -150,25 +154,299 @@ class Profile extends BaseController
 
                 $personne = $this->personneModel->getPersonne($this->personneID);
                 $mailPersonne = $this->mailModel->getMailPersonne($this->personneID);
-
                 $employeursPersonne = $this->employeurModel->getEmployeurPersonne($this->personneID);
-                $allEmployeurs = $this->employeurModel->getAllEmployeurs();
-
                 $sejourPersonne = $this->sejourModel->getSejourPersonne($this->personneID);
-
                 $responsabilitesPersonne = $this->responsabiliteModel->getResponsabilitePersonne($this->personneID);
-
                 $statutPersonne = $this->statutModel->getStatutPersonne($this->personneID);
-                $allStatuts = $this->statutModel->getAllStatuts();
-
                 $equipePersonne = $this->equipeModel->getEquipePersonne($this->personneID);
+                $encadresPersonne = $this->personneModel->getEncadrePersonne($this->personneID);
+                $bureauPersonne = $this->bureauModel->getBureauPersonne($this->personneID);
+
+
+                // Vérification si appel du formulaire
+                if ($this->request->getGetPost()) {
+                    // Ajout, modification ou suppréssion des modifications sur le profile
+                    $commentaire = "";
+                    if ($this->request->getGetPost('commentaire')) {
+                        $commentaire = $this->request->getGetPost('commentaire');
+                    }
+
+                    if ($this->request->getGetPost('nom')) {
+                        $nom = $this->request->getGetPost('nom');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'nom');
+                        if ($personne->nom !== $nom && empty($modification)) {
+                            $insert = [
+                                'id_personne' => $this->personneID,
+                                'attribut' => "nom",
+                                'avant' => $personne->nom,
+                                'apres' => $nom,
+                                'statut' => "attente",
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->insertModification($insert);
+                        } else if ($personne->nom !== $nom && !empty($modification)) {
+                            $update = [
+                                'apres' => $nom,
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                        } else if ($personne->nom == $nom && !empty($modification)) {
+                            $this->modificationModel->deleteModification($modification->id_modification);
+                        }
+                    }
+                    if ($this->request->getGetPost('prenom')) {
+                        $prenom = $this->request->getGetPost('prenom');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'prenom');
+                        if ($personne->prenom !== $prenom && empty($modification)) {
+                            $insert = [
+                                'id_personne' => $this->personneID,
+                                'attribut' => "prenom",
+                                'avant' => $personne->prenom,
+                                'apres' => $prenom,
+                                'statut' => "attente",
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->insertModification($insert);
+                        } else if ($personne->prenom !== $prenom && !empty($modification)) {
+                            $update = [
+                                'apres' => $prenom,
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                        } else if ($personne->prenom == $prenom && !empty($modification)) {
+                            $this->modificationModel->deleteModification($modification->id_modification);
+                        }
+                    }
+                    if ($this->request->getGetPost('email')) {
+                        $email = $this->request->getGetPost('email');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'mail');
+                        if ($mailPersonne->libelle !== $email && empty($modification)) {
+                            $insert = [
+                                'id_personne' => $this->personneID,
+                                'attribut' => "mail",
+                                'avant' => $mailPersonne->libelle,
+                                'apres' => $email,
+                                'statut' => "attente",
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->insertModification($insert);
+                        } else if ($mailPersonne->libelle !== $email && !empty($modification)) {
+                            $update = [
+                                'apres' => $email,
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                        } else if ($mailPersonne->libelle == $email && !empty($modification)) {
+                            $this->modificationModel->deleteModification($modification->id_modification);
+                        }
+                    }
+                    if ($this->request->getGetPost('telephone')) {
+                        $telephone = $this->request->getGetPost('telephone');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'telephone');
+                        if ($personne->telephone !== $telephone && empty($modification)) {
+                            $insert = [
+                                'id_personne' => $this->personneID,
+                                'attribut' => "telephone",
+                                'avant' => $personne->telephone,
+                                'apres' => $telephone,
+                                'statut' => "attente",
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->insertModification($insert);
+                        } else if ($personne->telephone !== $telephone && !empty($modification)) {
+                            $update = [
+                                'apres' => $telephone,
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                        } else if ($personne->telephone == $telephone && !empty($modification)) {
+                            $this->modificationModel->deleteModification($modification->id_modification);
+                        }
+                    }
+                    if ($this->request->getGetPost('bureau')) {
+                        $bureau = intval($this->request->getGetPost('bureau'));
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'bureau');
+                        if ($bureauPersonne->id_bureau !== $bureau && empty($modification)) {
+                            $insert = [
+                                'id_personne' => $this->personneID,
+                                'attribut' => "bureau",
+                                'avant' => $bureauPersonne->id_bureau,
+                                'apres' => $bureau,
+                                'statut' => "attente",
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->insertModification($insert);
+                        } else if ($bureauPersonne->id_bureau !== $bureau && !empty($modification)) {
+                            $update = [
+                                'apres' => $bureau,
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                        } else if ($bureauPersonne->id_bureau == $bureau && !empty($modification)) {
+                            $this->modificationModel->deleteModification($modification->id_modification);
+                        }
+                    }
+                    if ($this->request->getGetPost('statut')) {
+                        $statut = intval($this->request->getGetPost('statut'));
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'statut');
+                        if ($statutPersonne->id_statut !== $statut && empty($modification)) {
+                            $insert = [
+                                'id_personne' => $this->personneID,
+                                'attribut' => "statut",
+                                'avant' => $statutPersonne->id_statut,
+                                'apres' => $statut,
+                                'statut' => "attente",
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->insertModification($insert);
+                        } else if ($statutPersonne->id_statut !== $statut && !empty($modification)) {
+                            $update = [
+                                'apres' => $statut,
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                        } else if ($statutPersonne->id_statut == $statut && !empty($modification)) {
+                            $this->modificationModel->deleteModification($modification->id_modification);
+                        }
+                    }
+                    if ($this->request->getGetPost('equipe[]')) {
+                        $equipesAPRES = $this->request->getGetPost('equipe[]');
+                        $equipeINT = [];
+                        foreach ($equipesAPRES as $eq) {
+                            $equipeINT[] = intval($eq);
+                        }
+                        $equipesAPRES = $equipeINT;
+
+                        $equipesAVANT = [];
+                        foreach ($equipePersonne as $equipeP) {
+                            $equipesAVANT[] = $equipeP->id_equipe;
+                        }
+
+                        asort($equipesAVANT);
+                        asort($equipesAPRES);
+
+                        $listEquipeAPRES = implode(', ', $equipesAPRES);
+
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'equipe');
+                        if ($equipesAPRES != $equipesAVANT && empty($modification)) {
+                            $listEquipeAVANT = implode(', ', $equipesAVANT);
+                            $insert = [
+                                'id_personne' => $this->personneID,
+                                'attribut' => "equipe",
+                                'avant' => $listEquipeAVANT,
+                                'apres' => $listEquipeAPRES,
+                                'statut' => "attente",
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->insertModification($insert);
+                        } else if ($equipesAPRES != $equipesAVANT && !empty($modification)) {
+                            $update = [
+                                'apres' => $listEquipeAPRES,
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                        } else if ($equipesAPRES == $equipesAVANT && !empty($modification)) {
+                            $this->modificationModel->deleteModification($modification->id_modification);
+                        }
+                    }
+                    if ($this->request->getGetPost('employeur[]')) {
+                        $employeursAPRES = $this->request->getGetPost('employeur[]');
+                        $employeurINT = [];
+                        foreach ($employeursAPRES as $employeur) {
+                            $employeurINT[] = intval($employeur);
+                        }
+                        $employeursAPRES = $employeurINT;
+
+                        $employeursAVANT = [];
+                        foreach ($employeursPersonne as $employeur) {
+                            $employeursAVANT[] = $employeur->id_employeur;
+                        }
+
+                        asort($employeursAVANT);
+                        asort($employeursAPRES);
+                        $listEmployeurAPRES = implode(', ', $employeursAPRES);
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'employeur');
+                        if ($employeursAPRES != $employeursAVANT && empty($modification)) {
+                            $listEmployeurAVANT = implode(', ', $employeursAVANT);
+                            $insert = [
+                                'id_personne' => $this->personneID,
+                                'attribut' => "employeur",
+                                'avant' => $listEmployeurAVANT,
+                                'apres' => $listEmployeurAPRES,
+                                'statut' => "attente",
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->insertModification($insert);
+                        } else if ($employeursAPRES != $employeursAVANT && !empty($modification)) {
+                            $update = [
+                                'apres' => $listEmployeurAPRES,
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                        } else if ($employeursAPRES == $employeursAVANT && !empty($modification)) {
+                            $this->modificationModel->deleteModification($modification->id_modification);
+                        }
+                    }
+                    if ($this->request->getGetPost('activite')) {
+                        $activite = $this->request->getGetPost('activite');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'activite');
+                        if ($sejourPersonne->sujet !== $activite && empty($modification)) {
+                            $insert = [
+                                'id_personne' => $this->personneID,
+                                'attribut' => "activite",
+                                'avant' => $sejourPersonne->sujet,
+                                'apres' => $activite,
+                                'statut' => "attente",
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->insertModification($insert);
+                        } else if ($sejourPersonne->sujet !== $activite && !empty($modification)) {
+                            $update = [
+                                'apres' => $activite,
+                                'commentaire' => $commentaire
+                            ];
+                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                        } else if ($sejourPersonne->sujet == $activite && !empty($modification)) {
+                            $this->modificationModel->deleteModification($modification->id_modification);
+                        }
+                    }
+
+//                    // TODO : gérer les encadrés
+//                if ($this->request->getGetPost('encadre[]')) {
+//                    $encadres = $this->request->getGetPost('encadre[]');
+//                    var_dump($encadres);
+//                }
+                }
+
+                $allEmployeurs = $this->employeurModel->getAllEmployeurs();
+                $allBureaux = $this->bureauModel->getAllBureaux();
+                $allStatuts = $this->statutModel->getAllStatuts();
                 $allEquipes = $this->equipeModel->getAllEquipes();
 
-                $encadresPersonne = $this->personneModel->getEncadrePersonne($this->personneID);
-
-                $bureauPersonne = $this->bureauModel->getBureauPersonne($this->personneID);
-                $allBureaux = $this->bureauModel->getAllBureaux();
-
+                // Données des modifications en attente si existantes
+                $nomModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'nom');
+                $prenomModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'prenom');
+                $mailModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'mail');
+                $telephoneModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'telephone');
+                $bureauModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'bureau');
+                $statutModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'statut');
+                $activiteModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'activite');
+                $equipesIDModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'equipe');
+                $equipesModif = [];
+                if (!empty($equipesIDModif)) {
+                    $equipesID = explode(', ', $equipesIDModif->apres);
+                    foreach ($equipesID as $equipeID) {
+                        $equipesModif[] = $this->equipeModel->getEquipe(intval($equipeID));
+                    }
+                }
+                $employeursIDModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'employeur');
+                $employeursModif = [];
+                if (!empty($employeursIDModif)) {
+                    $employeursID = explode(', ', $equipesIDModif->apres);
+                    foreach ($employeursID as $employeurID) {
+                        $employeursModif[] = $this->employeurModel->getEmployeur(intval($employeurID));
+                    }
+                }
 
                 if (!empty($personne)) {
                     $data['personne'] = $personne;
@@ -178,7 +456,7 @@ class Profile extends BaseController
                     $data['statutPersonne'] = $statutPersonne;
                 }
 
-                if (!empty($allStatuts)){
+                if (!empty($allStatuts)) {
                     $data['allStatuts'] = $allStatuts;
                 }
 
@@ -190,7 +468,7 @@ class Profile extends BaseController
                     $data['employeursPersonne'] = $employeursPersonne;
                 }
 
-                if (!empty($allEmployeurs)){
+                if (!empty($allEmployeurs)) {
                     $data['allEmployeurs'] = $allEmployeurs;
                 }
 
@@ -203,7 +481,7 @@ class Profile extends BaseController
                     $data['responsablesPersonne'] = $this->personneModel->getResponsablePersonne($this->personneID, $sejourPersonne->id_sejour);
                 }
 
-                if(!empty($encadresPersonne)) {
+                if (!empty($encadresPersonne)) {
                     $data['encadresPersonne'] = $encadresPersonne;
                 }
 
@@ -221,6 +499,42 @@ class Profile extends BaseController
 
                 if (!empty($allBureaux)) {
                     $data['allBureaux'] = $allBureaux;
+                }
+
+                if (!empty($nomModif)) {
+                    $data['nomModif'] = $nomModif;
+                }
+
+                if (!empty($prenomModif)) {
+                    $data['prenomModif'] = $prenomModif;
+                }
+
+                if (!empty($mailModif)) {
+                    $data['mailModif'] = $mailModif;
+                }
+
+                if (!empty($telephoneModif)) {
+                    $data['telephoneModif'] = $telephoneModif;
+                }
+
+                if (!empty($bureauModif)) {
+                    $data['bureauModif'] = intval($bureauModif->apres);
+                }
+
+                if (!empty($statutModif)) {
+                    $data['statutModif'] = intval($statutModif->apres);
+                }
+
+                if (!empty($activiteModif)) {
+                    $data['activiteModif'] = $activiteModif;
+                }
+
+                if (!empty($equipesModif)) {
+                    $data['equipesModif'] = $equipesModif;
+                }
+
+                if (!empty($employeursModif)) {
+                    $data['employeursModif'] = $employeursModif;
                 }
 
                 return view('profile_edit', $data);

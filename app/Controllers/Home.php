@@ -19,6 +19,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\I18n\Time;
 use CodeIgniter\Session\Session;
 use Config\Services;
+use DateInterval;
 use Exception;
 use Psr\Log\LoggerInterface;
 
@@ -59,10 +60,9 @@ class Home extends BaseController
         $this->session = Services::session();
     }
 
-    //TODO : faire les en cours, prendre séjours actuels ...
     public function index()
     {
-        $this->updateDB();
+//        $this->updateDB();
 
         $user = $this->session->get('user');
         if ($user) {
@@ -103,24 +103,28 @@ class Home extends BaseController
     /**
      * Fonction de mise à jour de la base de données TODO : A automatiser !
      * @return void
+     * @throws Exception
      */
     public function updateDB()
     {
         $insertImages = [];
         $insertLogin = [];
 
-        $allPersonnels = $this->getAllDataFromURL('personnels_en_cours');
+        // Données brutes indépendantes des personnes
+        $allEmployeurs = $this->getAllDataFromURL('org_payeurs');
+        $allStatuts = $this->getAllDataFromURL('statuts');
+        $allEquipes = $this->getAllDataFromURL('groupes');
+        $allBureaux = $this->getAllDataFromURL('bureaux');
+
+        // Données en fonction des personnes
+        $allPersonnels = $this->getAllDataFromURL('personnels');
         $allSejours = $this->getAllDataFromURL('sejours');
         $allEncadrants = $this->getAllDataFromURL('encadrants');
         $allLocalisations = $this->getAllDataFromURL('localisation_personnels');
         $allMails = $this->getAllDataFromURL('mails_pro');
         $allResponsabilites = $this->getAllDataFromURL('personne_responsabilites');
-        $allEmployeurs = $this->getAllDataFromURL('org_payeurs');
-        $allStatuts = $this->getAllDataFromURL('statuts');
-        $allEquipes = $this->getAllDataFromURL('groupes');
         $allPersonnes = $this->getAllDataFromURL('personnes');
         $allFinancements = $this->getAllDataFromURL('financements');
-        $allBureaux = $this->getAllDataFromURL('bureaux');
         $allRattachements = $this->getAllDataFromURL('rattachements');
 
         if (isset($allBureaux)) {
@@ -173,10 +177,12 @@ class Home extends BaseController
 
         if (isset($allPersonnes)) {
             foreach ($allPersonnes as $personne) {
-                $insertImages[] = ['id_personne' => $personne['id_personne'],
-                    'photo' => $personne['photo']];
-                $insertLogin[] = ['id_personne' => $personne['id_personne'],
-                    'login' => $personne['info_prof']['login_unite']];
+                if (in_array($personne['id_personne'], array_column($allPersonnels, 'id_personne'))) {
+                    $insertImages[] = ['id_personne' => $personne['id_personne'],
+                        'photo' => $personne['photo']];
+                    $insertLogin[] = ['id_personne' => $personne['id_personne'],
+                        'login' => $personne['info_prof']['login_unite']];
+                }
             }
             $this->createProfilePictures($insertImages);
             $this->updateLoginDB($insertLogin);
@@ -214,12 +220,13 @@ class Home extends BaseController
             }
 
             foreach ($bureauAPI as $bureau) {
+                $id_bureau = $bureau['id_bureau'];
                 $insert = [
-                    'id_bureau' => $bureau['id_bureau'],
+                    'id_bureau' => $id_bureau,
                     'numero' => $bureau['numero_bureau']
                 ];
 
-                if (!$this->bureauModel->getBureau($bureau['id_bureau'])) {
+                if (!$this->bureauModel->getBureau($id_bureau)) {
                     $this->bureauModel->insertBureau($insert);
                 }
 
@@ -253,11 +260,12 @@ class Home extends BaseController
             }
 
             foreach ($statusAPI as $statut) {
+                $id_statut = $statut['id_statut'];
                 $insert = [
-                    'id_statut' => $statut['id_statut'],
+                    'id_statut' => $id_statut,
                     'nom' => $statut['statut']
                 ];
-                if (!$this->statutModel->getStatut($statut['id_statut'])) {
+                if (!$this->statutModel->getStatut($id_statut)) {
                     $this->statutModel->insertStatut($insert);
                 }
             }
@@ -268,6 +276,7 @@ class Home extends BaseController
      * Fonction de mise à jour de toutes les personnes en base de données
      * @param $personnelsAPI
      * @return void
+     * @throws Exception
      */
     public function updatePersonnelDB($personnelsAPI)
     {
@@ -294,13 +303,22 @@ class Home extends BaseController
             }
 
             foreach ($personnelsAPI as $personne) {
+                $interval = new DateInterval('P3M');
+                $date_fin = date_create_immutable(Time::createFromFormat("d/m/Y", $personne['date_fin_sejour']))
+                    ->add($interval)->format('Y-m-d');
+                $date_actuelle = date('Y-m-d');
+
+                $id_personne = $personne['id_personne'];
+
                 $data = [
-                    'id_personne' => $personne['id_personne'],
+                    'id_personne' => $id_personne,
                     'role' => 'normal',
                     'nom' => mb_strtoupper($personne['nom_usage']),
                     'prenom' => $personne['prenom'],
                 ];
-                if (!$this->personneModel->getPersonne($personne['id_personne'])) {
+                // Vérification si la personne n’existe pas encore et si sa date de fin de séjour n’a pas dépassé 3 mois la date actuelle
+                if (!$this->personneModel->getPersonne($id_personne)
+                    && $date_fin > $date_actuelle) {
                     $this->personneModel->insertPersonne($data);
                 }
             }
@@ -373,12 +391,15 @@ class Home extends BaseController
             }
 
             foreach ($responsabilitesArray as $responsabilite) {
+                $id_responsabilite = $responsabilite['id_personne_resp'];
+                $id_personne = $responsabilite['personne']['id_personne'];
                 $insert = [
-                    'id_responsabilite' => $responsabilite['id_personne_resp'],
+                    'id_responsabilite' => $id_responsabilite,
                     'libelle' => $responsabilite['responsabilite']['responsabilite'],
-                    'id_personne' => $responsabilite['personne']['id_personne']
+                    'id_personne' => $id_personne
                 ];
-                if (!$this->responsabiliteModel->getResponsabilite($responsabilite['id_personne_resp'])) {
+                if (!$this->responsabiliteModel->getResponsabilite($id_responsabilite)
+                    && $this->personneModel->getPersonne($id_personne)) {
                     $this->responsabiliteModel->insertResponsabilite($insert);
                 }
             }
@@ -412,12 +433,13 @@ class Home extends BaseController
             }
 
             foreach ($employeursArray as $employeur) {
+                $id_employeur = $employeur['id_org_payeur'];
                 $insert = [
-                    'id_employeur' => $employeur['id_org_payeur'],
+                    'id_employeur' => $id_employeur,
                     'nom' => $employeur['organisme_payeur'],
                     'nom_court' => $employeur['nom_court_op']
                 ];
-                if (!$this->employeurModel->getEmployeur($employeur['id_org_payeur'])) {
+                if (!$this->employeurModel->getEmployeur($id_employeur)) {
                     $this->employeurModel->insertEmployeur($insert);
                 }
             }
@@ -453,14 +475,17 @@ class Home extends BaseController
 
             foreach ($mailsAPI as $mail) {
                 if ($mail['type_mail']['type_mail'] != 'Perso') {
+                    $id_mail = $mail['id_mail'];
+                    $id_personne = $mail['personne']['id_personne'];
                     $insert = [
-                        'id_mail' => $mail['id_mail'],
+                        'id_mail' => $id_mail,
                         'libelle' => $mail['mail'],
                         'type' => $mail['type_mail']['type_mail'],
-                        'id_personne' => $mail['personne']['id_personne']
+                        'id_personne' => $id_personne
                     ];
 
-                    if (!$this->mailModel->getMail($mail['id_mail'])) {
+                    if (!$this->mailModel->getMail($id_mail)
+                        && $this->personneModel->getPersonne($id_personne)) {
                         $this->mailModel->insertMail($insert);
                     }
                 }
@@ -510,11 +535,12 @@ class Home extends BaseController
             }
 
             foreach ($sejourAPI as $sejour) {
+                $id_personne = $sejour['personne']['id_personne'];
                 $insert = [
                     'id_sejour' => $sejour['id_sejour'],
                     'date_debut' => Time::createFromFormat("d/m/Y", $sejour['date_debut_sejour']),
                     'date_fin' => Time::createFromFormat("d/m/Y", $sejour['date_fin_sejour']),
-                    'id_personne' => $sejour['personne']['id_personne']
+                    'id_personne' => $id_personne
                 ];
                 if (isset($sejour['these']['sujet_these'])) {
                     $insert += ['sujet' => $sejour['these']['sujet_these']];
@@ -522,7 +548,8 @@ class Home extends BaseController
                     $insert += ['sujet' => $sejour['stage']['sujet_stage']];
                 }
 
-                if (!$this->sejourModel->getSejour($sejour['id_sejour'])) {
+                if (!$this->sejourModel->getSejour($sejour['id_sejour'])
+                    && $this->personneModel->getPersonne($id_personne)) {
                     $this->sejourModel->insertSejour($insert);
                 }
             }
@@ -577,7 +604,8 @@ class Home extends BaseController
                     $insert += ['id_personne' => $encadrant['id_personne']];
                 }
 
-                if (!$this->encadrantModel->getEncadrant($encadrant['id_encadrant'])) {
+                if (!$this->encadrantModel->getEncadrant($encadrant['id_encadrant'])
+                    && $this->sejourModel->getSejour($encadrant['id_sejour'])) {
                     $this->encadrantModel->insertEncadrant($insert);
                 }
             }
@@ -611,13 +639,14 @@ class Home extends BaseController
             }
 
             foreach ($equipesAPI as $equipe) {
+                $id_equipe = $equipe['id_groupe'];
                 $insert = [
-                    'id_equipe' => $equipe['id_groupe'],
+                    'id_equipe' => $id_equipe,
                     'nom_court' => $equipe['nom_court_groupe'],
                     'nom_long' => $equipe['nom_long_groupe']
                 ];
 
-                if (!$this->equipeModel->getEquipe($equipe['id_groupe'])) {
+                if (!$this->equipeModel->getEquipe($id_equipe)) {
                     $this->equipeModel->insertEquipe($insert);
                 }
             }
@@ -651,13 +680,18 @@ class Home extends BaseController
             }
 
             foreach ($financementAPI as $financement) {
+                $id_financement = $financement['id_financement'];
+                $id_sejour = $financement['id_sejour'];
+                $id_employeur = $financement['org_payeur']['id_org_payeur'];
                 $insert = [
-                    'id_financement' => $financement['id_financement'],
-                    'id_sejour' => $financement['id_sejour'],
-                    'id_employeur' => $financement['org_payeur']['id_org_payeur']
+                    'id_financement' => $id_financement,
+                    'id_sejour' => $id_sejour,
+                    'id_employeur' => $id_employeur
                 ];
 
-                if (!$this->financementModel->getFinancement($financement['id_financement'])) {
+                if (!$this->financementModel->getFinancement($id_financement)
+                    && $this->sejourModel->getSejour($id_sejour)
+                    && $this->employeurModel->getEmployeur($id_employeur)) {
                     $this->financementModel->insertFinancement($insert);
                 }
             }
@@ -698,7 +732,9 @@ class Home extends BaseController
                     'id_equipe' => $rattachement['id_groupe']
                 ];
 
-                if (!$this->rattachementModel->getRattachement($rattachement['id_rattachement'])) {
+                if (!$this->rattachementModel->getRattachement($rattachement['id_rattachement'])
+                    && $this->sejourModel->getSejour($rattachement['id_sejour'])
+                    && $this->equipeModel->getEquipe($rattachement['id_groupe'])) {
                     $this->rattachementModel->insertRattachement($insert);
                 }
             }

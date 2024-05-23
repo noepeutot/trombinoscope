@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Models\PersonneModel;
 use App\Models\UtilisateurModel;
+use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -52,7 +53,6 @@ class Login extends BaseController
                     'role' => $role,
                     'remember' => $remember
                 ];
-                var_dump($sessionData);
                 $this->session->remove('error');
                 $this->session->set('user', $sessionData);
                 return redirect('/');

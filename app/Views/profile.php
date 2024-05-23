@@ -90,7 +90,7 @@
             <?php } ?>
             <?php if (!empty($employeurs)) { ?>
                 <div class="col-4 my-2">
-                    <p class="fw-light mb-1">Employeur</p>
+                    <p class="fw-light mb-1">Employeur⋅s</p>
                     <p class="fw-bold mb-0">
                         <?php foreach ($employeurs as $employeur) { ?>
                             <span><?= $employeur->nom_court ?></span>
@@ -103,7 +103,7 @@
             <?php } ?>
             <?php if (!empty($responsables)) { ?>
                 <div class="col-4 my-2">
-                    <p class="fw-light mb-0">Responsable(s)</p>
+                    <p class="fw-light mb-0">Responsable⋅s</p>
                     <p class="fw-bold mb-0">
                         <?php foreach ($responsables as $encadre) {
                             if (isset($encadre->id_personne)) { ?>

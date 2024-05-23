@@ -8,6 +8,7 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
+// TODO : changer get en post
 
 $routes->setAutoRoute(false);
 
