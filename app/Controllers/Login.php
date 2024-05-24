@@ -65,12 +65,12 @@ class Login extends BaseController
     }
 
     /**
-     * Fonction qui permet de se déconnecter en supprimer la session de l’utilisateur
+     * Fonction qui permet de se déconnecter
      * @return RedirectResponse
      */
     public function logout()
     {
-        $this->session->remove('user');
+        $this->session->destroy();
         return redirect('/');
     }
 }

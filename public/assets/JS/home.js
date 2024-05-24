@@ -15,6 +15,14 @@ $(document).ready(function () {
     $('.form-check-input').change(checkCheckbox);
 })
 
+$(document).on('keypress', function (e) {
+    if (e.which === 13) {
+        console.log('enter')
+        $('form#search').submit();
+        return false;
+    }
+})
+
 /**
  * Fonction qui check si au moins un input est checked dans les filtres
  */

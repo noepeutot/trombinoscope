@@ -171,6 +171,16 @@ class Profile extends BaseController
                         $commentaire = $this->request->getGetPost('commentaire');
                     }
 
+                    $image = $this->request->getFile('photo_profile');
+                    var_dump($image->getSize());
+                    if (!isset($image)) {
+                        $data['errors'][] = 'fichier invalide';
+                    } else if(!$image->isValid()) {
+                        $data['errors'][] = $image->getErrorString() . '(' . $image->getError() . ')';
+                    } else {
+                        var_dump($image);
+                    }
+
                     if ($this->request->getGetPost('nom')) {
                         $nom = $this->request->getGetPost('nom');
                         $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'nom');
@@ -431,20 +441,24 @@ class Profile extends BaseController
                 $bureauModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'bureau');
                 $statutModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'statut');
                 $activiteModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'activite');
+
                 $equipesIDModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'equipe');
+                // Convertir la liste des id des équipes en int
                 $equipesModif = [];
                 if (!empty($equipesIDModif)) {
                     $equipesID = explode(', ', $equipesIDModif->apres);
                     foreach ($equipesID as $equipeID) {
-                        $equipesModif[] = $this->equipeModel->getEquipe(intval($equipeID));
+                        $equipesModif[] = intval($equipeID);
                     }
                 }
+
                 $employeursIDModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'employeur');
+                // Convertir la liste des id des employeurs en int
                 $employeursModif = [];
                 if (!empty($employeursIDModif)) {
-                    $employeursID = explode(', ', $equipesIDModif->apres);
+                    $employeursID = explode(', ', $employeursIDModif->apres);
                     foreach ($employeursID as $employeurID) {
-                        $employeursModif[] = $this->employeurModel->getEmployeur(intval($employeurID));
+                        $employeursModif[] = intval($employeurID);
                     }
                 }
 

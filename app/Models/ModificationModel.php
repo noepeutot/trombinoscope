@@ -25,7 +25,7 @@ class ModificationModel extends Model
         'commentaire'
     ];
 
-    protected $afterFind = ['getData'];
+    protected $beforeFind = ['getData'];
 
     public function __construct()
     {
@@ -127,19 +127,19 @@ class ModificationModel extends Model
 
     public function getData($data)
     {
-//        if (isset($data['data']->attribut) && ($data['data']->attribut == 'bureau' || $data['data']->attribut == 'categorie')) {
-//            $data['data']->avant = intval($data['data']->avant);
-//            $data['data']->apres = intval($data['data']->apres);
-//        } else if (isset($data['data']->attribut) && ($data['data']->attribut == 'equipe' || $data['data']->attribut == 'employeur')) {
-//            $listData = [];
-//            if (!empty($data['data']->apres)) {
-//                $listID = explode(', ', $data['data']->apres);
-//                foreach ($listID as $ID) {
-//                    $listData[] = intval($ID);
-//                }
-//            }
-//            $data['data']->apres = $listData;
-//        }
+        if (isset($data['data']->attribut) && ($data['data']->attribut == 'bureau' || $data['data']->attribut == 'categorie')) {
+            $data['data']->avant = intval($data['data']->avant);
+            $data['data']->apres = intval($data['data']->apres);
+        } else if (isset($data['data']->attribut) && ($data['data']->attribut == 'equipe' || $data['data']->attribut == 'employeur')) {
+            $listData = [];
+            if (!empty($data['data']->apres)) {
+                $listID = explode(', ', $data['data']->apres);
+                foreach ($listID as $ID) {
+                    $listData[] = intval($ID);
+                }
+            }
+            $data['data']->apres = $listData;
+        }
         return $data;
     }
 }

@@ -136,7 +136,7 @@ class PersonneModel extends Model
      * @param $statuts
      * @param $equipes
      * @param $tuteurs
-     * @return array|float[]|float[][]|int[]|int[][]|null[]|null[][]|object|object[]|object[][]|string[]|string[][]|null
+     * @return array|object|null
      */
     public function searchPersonne($query, $statuts, $equipes, $tuteurs)
     {
@@ -159,7 +159,12 @@ class PersonneModel extends Model
         // Filtre des équipes
         if (!empty($equipes)) {
             foreach ($equipes as $equipe) {
-                $this->orlike('equipe', $equipe);
+                $this->orWhere('id_personne IN
+                (SELECT s.id_personne
+                FROM sejour s, personne p, rattachement r
+                WHERE p.id_personne=s.id_personne
+                AND s.id_sejour=r.id_sejour
+                AND r.id_equipe=' . $equipe . ')');
             }
         }
 
@@ -239,29 +244,25 @@ class PersonneModel extends Model
         $ldap_base_dn[] = 'CN=Users,DC=g2elab,DC=local';
 
         // Allow non-ascii in username & password.
-        $username=utf8_decode($username);
-        $passwd=utf8_decode($passwd);
+        $username = utf8_decode($username);
+        $passwd = utf8_decode($passwd);
 
-        if(empty($username)||empty($passwd))
+        if (empty($username) || empty($passwd))
             return false;
 
         // On essaie de se connecter au premier serveur disponible.
-        $bon=false;
-        foreach($ldap_host as $host)
-        {
-            if($ldap = ldap_connect ($host))
-            {
-                $bon=true;
+        $bon = false;
+        foreach ($ldap_host as $host) {
+            if ($ldap = ldap_connect($host)) {
+                $bon = true;
                 break;
             }
         }
-        if(!$bon) return false;
+        if (!$bon) return false;
 
         // On teste le login/mot de passe
-        foreach( $ldap_base_dn as $base_dn)
-        {
-            if (@ldap_bind($ldap, 'CN='.$username.','.$base_dn, $passwd))
-            {
+        foreach ($ldap_base_dn as $base_dn) {
+            if (@ldap_bind($ldap, 'CN=' . $username . ',' . $base_dn, $passwd)) {
                 @ldap_unbind($ldap);
                 return True;
             }

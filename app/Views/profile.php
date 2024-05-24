@@ -55,10 +55,8 @@
                     <p class="fw-bold mb-0">
                         <?php foreach ($equipes as $equipe) { ?>
                             <span><?= $equipe->nom_court ?></span>
-                            <?php if (next($equipes)) {
-                                echo ", ";
-                            }
-                        } ?>
+                            <?= next($equipes) ? ", " : ''; ?>
+                        <?php } ?>
                     </p>
                 </div>
             <?php } ?>
@@ -75,10 +73,8 @@
                     <p class="fw-bold mb-0">
                         <?php foreach ($responsabilites as $responsabilite) { ?>
                             <span><?= $responsabilite->libelle ?></span>
-                            <?php if (next($responsabilites)) {
-                                echo ", ";
-                            }
-                        } ?>
+                            <?= next($responsabilites) ? ', ' : ''; ?>
+                        <?php } ?>
                     </p>
                 </div>
             <?php } ?>
@@ -94,10 +90,8 @@
                     <p class="fw-bold mb-0">
                         <?php foreach ($employeurs as $employeur) { ?>
                             <span><?= $employeur->nom_court ?></span>
-                            <?php if (next($employeurs)) {
-                                echo ", ";
-                            }
-                        } ?>
+                            <?= next($employeurs) ? ", " : ''; ?>
+                        <?php } ?>
                     </p>
                 </div>
             <?php } ?>
@@ -112,9 +106,7 @@
                             <?php } else { ?>
                                 <span><?= $encadre->nom . ' ' . $encadre->prenom ?></span>
                             <?php }
-                            if (next($responsables)) {
-                                echo ", ";
-                            }
+                            echo next($responsables) ? ', ' : '';
                         } ?>
                     </p>
                 </div>
@@ -130,9 +122,7 @@
                             <?php } else { ?>
                                 <span><?= $encadre->nom . ' ' . $encadre->prenom ?></span>
                             <?php }
-                            if (next($encadres)) {
-                                echo ", ";
-                            }
+                            echo next($encadres) ? ", " : '';
                         } ?>
                     </p>
                 </div>
