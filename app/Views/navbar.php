@@ -3,7 +3,7 @@
         <a role="button" class="btn btn-light d-flex align-items-center mx-5 px-4 dropdown-toggle"
            data-bs-toggle="dropdown" aria-expanded="false">
             <img class="me-2" id="accountImage"
-                 src="<?= img_url('profile/' . $personneConnectee->id_personne . '.jpg') ?>"
+                 src="<?= img_url('profile/valide/' . $personneConnectee->id_personne . '.jpg') ?>"
                  alt="photographie">
             <span><?= $personneConnectee->nom . ' ' . $personneConnectee->prenom ?></span>
         </a>

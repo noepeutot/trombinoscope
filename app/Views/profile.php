@@ -25,7 +25,7 @@
     <main class="d-flex flex-column justify-content-center align-items-center">
         <section class="d-flex flex-column justify-content-center align-items-center mb-5">
             <img id="profilePicture" class="border border-5 border-light rounded-3"
-                 src="<?= img_url('profile/' . $personne->id_personne . '.jpg') ?>"
+                 src="<?= img_url('profile/valide/' . $personne->id_personne . '.jpg') ?>"
                  alt="photographie">
             <h2><?= $personne->nom . ' ' . $personne->prenom ?></h2>
 

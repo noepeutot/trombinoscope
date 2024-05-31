@@ -17,6 +17,7 @@ $routes->get('search?(:segment)', [Home::class, 'index/$1']);
 
 $routes->get('profile/(:num)', [Profile::class, 'index/$1']);
 $routes->match(['GET', 'POST'], 'profile/edit', [Profile::class, 'edit']);
+$routes->match(['GET'], 'profile/edit/delete', [Profile::class, 'deletePhoto']);
 
 $routes->match(['GET', 'POST'], 'login', [Login::class, 'index']);
 $routes->get('logout', [Login::class, 'logout']);

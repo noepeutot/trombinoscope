@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Trombinoscope</title>
-    <link href="<?= css_url('profile') ?>" rel='stylesheet'>
+    <link href="<?= css_url('profile_edit') ?>" rel='stylesheet'>
     <link href="<?= css_url('bootstrap.min.v5.3.3') ?>" rel="stylesheet">
     <script src="<?= js_url('popper.v2.11.8') ?>"></script>
     <script src="<?= js_url('bootstrap.v5.3.3') ?>"></script>
@@ -23,35 +23,63 @@
     }
 </style>
 <body>
-<?php if (isset($errors)):
-    foreach ($errors as $error): ?>
-        <li><?= esc($error) ?></li>
-    <?php endforeach;
-endif; ?>
 <?= $this->include('header') ?>
 <?php $base_url = base_url('profile');
+$img_url = img_url('');
 if (isset($personne)) { ?>
-    <main class="d-flex justify-content-center">
-        <form class="row g-3 w-50" id="informations" method="post" action="<?= $base_url . '/edit' ?>"
-              enctype="multipart/form-data" size="30">
-            <div class="col-md-6 d-flex justify-content-start align-self-center">
-                <h2 class="text-light">
-                    Edition du profile
-                </h2>
+    <main class="justify-content-center w-100 pt-5 row">
+        <?= form_open_multipart($base_url . '/edit', "class='row w-75' id='informations'") ?>
+        <section class="col-4 row">
+            <div class="col-md-12 d-flex align-items-center flex-column p-5">
+                <label class="col-md-12 form-label text-light fs-6 text">Photo
+                    <?php if (isset($photoModif)) { ?>
+                        <span class="badge rounded-pill text-bg-warning">En attente
+                            <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
+                        </span>
+                    <?php } ?>
+                </label>
+
+                <?php if (isset($photoModif)): ?>
+                    <img class="profile rounded rounded-3 mw-"
+                         src="<?= $photoModif->apres ?>"
+                         alt="photo de profile">
+                <?php else: ?>
+                    <img class="profile rounded rounded-3"
+                         src="<?= $img_url . 'profile/valide/' . $personne->id_personne . '.jpg' ?>"
+                         alt="photo de profile">
+                <?php endif; ?>
+                <div class="col-md-12 d-grid gap-2 mt-2">
+                    <?php if (isset($photoModif)): ?>
+                        <a class="btn btn-light btn-sm d-flex align-items-center justify-content-center flex-wrap"
+                           href="<?= $base_url . '/edit/delete' ?>">
+                            <img class="me-2" src="<?= $img_url . 'profile/delete.svg' ?>" width="15px" alt="supprimer">
+                            Supprimer
+                        </a>
+                    <?php endif; ?>
+                    <label class="btn btn-primary btn-sm" for="photo_profile">Modifier la photo</label>
+                    <input class="btn btn-primary " type="file" id="photo_profile" name="photo_profile"
+                           form="informations" accept=".png, .jpg, .jpeg" style="display: none"
+                           onchange="form.submit()">
+                </div>
             </div>
-            <div class="col-md-6 d-flex justify-content-start align-self-center">
-                <a class="col-md-6 link-offset-2 text-light"
+        </section>
+        <section class="col-8 row row-gap-3">
+            <div class="col-md-12 row d-flex flex-row">
+                <h3 class="col-md-auto text-light">
+                    Edition du profile
+                </h3>
+                <a class="col-md-auto link-offset-2 text-light d-flex justify-content-start align-self-center"
                    href="<?= $base_url . '/' . $personne->id_personne ?>">
                     Prévisualisation
-                    <img src="<?= img_url('arrow_link.svg') ?>" alt="redirection">
+                    <img class="mx-2" src="<?= $img_url . 'arrow_link.svg' ?>" alt="redirection">
                 </a>
             </div>
             <div class="col-md-6">
                 <label for="inputNom" class="form-label text-light">Nom
                     <?php if (isset($nomModif)) { ?>
                         <span class="badge rounded-pill text-bg-warning">En attente
-                        <img src="<?= img_url('waiting.svg') ?>" alt="en attente" width="10">
-                    </span>
+                            <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
+                        </span>
                     <?php } ?>
                 </label>
                 <input type="text" class="form-control" id="inputNom" placeholder="Nom" name="nom"
@@ -61,19 +89,19 @@ if (isset($personne)) { ?>
                 <label for="inputPrenom" class="form-label text-light">Prénom
                     <?php if (isset($prenomModif)) { ?>
                         <span class="badge rounded-pill text-bg-warning">En attente
-                        <img src="<?= img_url('waiting.svg') ?>" alt="en attente" width="10">
-                    </span>
+                            <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
+                        </span>
                     <?php } ?>
                 </label>
                 <input type="text" class="form-control" id="inputPrenom" placeholder="Prénom" name="prenom"
                        value="<?= $prenomModif->apres ?? $personne->prenom ?>">
             </div>
-            <div class="col-12">
+            <div class="col-md-6">
                 <label for="inputEmail" class="form-label text-light">Email
                     <?php if (isset($mailModif)) { ?>
                         <span class="badge rounded-pill text-bg-warning">En attente
-                        <img src="<?= img_url('waiting.svg') ?>" alt="en attente" width="10">
-                    </span>
+                            <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
+                        </span>
                     <?php } ?>
                 </label>
                 <input type="email" class="form-control" id="inputEmail" placeholder="prenom.nom@g2elab.grenoble-inp.fr"
@@ -84,8 +112,8 @@ if (isset($personne)) { ?>
                 <label for="inputTel" class="form-label text-light">Téléphone
                     <?php if (isset($telephoneModif)) { ?>
                         <span class="badge rounded-pill text-bg-warning">En attente
-                        <img src="<?= img_url('waiting.svg') ?>" alt="en attente" width="10">
-                    </span>
+                            <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
+                        </span>
                     <?php } ?>
                 </label>
                 <input type="tel" class="form-control" id="inputTel" placeholder="0123456789" name="telephone"
@@ -95,8 +123,8 @@ if (isset($personne)) { ?>
                 <label for="inputBureau" class="form-label text-light">Bureau
                     <?php if (isset($bureauModif)) { ?>
                         <span class="badge rounded-pill text-bg-warning">En attente
-                        <img src="<?= img_url('waiting.svg') ?>" alt="en attente" width="10">
-                    </span>
+                            <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
+                        </span>
                     <?php } ?>
                 </label>
                 <select class="selectpicker w-100" id="inputBureau" data-live-search="true"
@@ -118,8 +146,8 @@ if (isset($personne)) { ?>
                 <label for="inputCategorie" class="form-label text-light">Catégorie
                     <?php if (isset($statutModif)) { ?>
                         <span class="badge rounded-pill text-bg-warning">En attente
-                        <img src="<?= img_url('waiting.svg') ?>" alt="en attente" width="10">
-                    </span>
+                            <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
+                        </span>
                     <?php } ?>
                 </label>
                 <select class="selectpicker w-100" id="inputCategorie" data-live-search="true"
@@ -141,8 +169,8 @@ if (isset($personne)) { ?>
                 <label for="inputEquipe" class="form-label text-light">Equipe⋅s de rattachement
                     <?php if (isset($equipesModif)) { ?>
                         <span class="badge rounded-pill text-bg-warning">En attente
-                        <img src="<?= img_url('waiting.svg') ?>" alt="en attente" width="10">
-                    </span>
+                            <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
+                        </span>
                     <?php } ?>
                 </label>
                 <select class="selectpicker w-100" id="inputEquipe" data-live-search="true"
@@ -165,8 +193,8 @@ if (isset($personne)) { ?>
                 <label for="inputEmployeur" class="form-label text-light w-100">Employeur⋅s
                     <?php if (isset($employeursModif)) { ?>
                         <span class="badge rounded-pill text-bg-warning">En attente
-                        <img src="<?= img_url('waiting.svg') ?>" alt="en attente" width="10">
-                    </span>
+                            <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
+                        </span>
                     <?php } ?>
                 </label>
                 <select class="selectpicker w-100" id="inputEmployeur" data-live-search="true"
@@ -186,46 +214,13 @@ if (isset($personne)) { ?>
                     } ?>
                 </select>
             </div>
-            <div class="col-md-6">
-                <label for="photo_profile" class="form-label text-light w-100">Photo de profile</label>
-                <input class="form-control" type="file" id="photo_profile" name="photo_profile" form="informations"
-                       accept=".png, .jpg, .jpeg">
-            </div>
-            <!--            --><?php //if (!empty($responsablesPersonne)) { ?>
-            <!--                <div class="col-md-6">-->
-            <!--                    <label for="inputResponsable" class="form-label text-light w-100">Responsable⋅s</label>-->
-            <!--                    <select class="selectpicker w-100" id="inputResponsable" data-live-search="true"-->
-            <!--                            data-style="btn-light" title="Sélectionner ..." name="responsable[]" form="informations"-->
-            <!--                            multiple>-->
-            <!--                        --><?php //foreach ($responsablesPersonne as $responsable) { ?>
-            <!--                            <option selected>-->
-            <!--                                --><?php //= $responsable->nom . ' ' . $responsable->prenom ?>
-            <!--                            </option>-->
-            <!--                        --><?php //} ?>
-            <!--                    </select>-->
-            <!--                </div>-->
-            <!--            --><?php //} ?>
-            <?php if (!empty($encadresPersonne)) { ?>
-                <div class="col-md-6">
-                    <label for="inputEncadrement" class="form-label text-light w-100">Co-Encadrement de
-                        recherche</label>
-                    <select class="selectpicker w-100" id="inputEncadrement" data-live-search="true"
-                            data-style="btn-light" title="Sélectionner…" form="informations" name="encadre[]" multiple>
-                        <?php foreach ($encadresPersonne as $encadre) { ?>
-                            <option selected>
-                                <?= $encadre->nom . ' ' . $encadre->prenom ?>
-                            </option>
-                        <?php } ?>
-                    </select>
-                </div>
-            <?php } ?>
             <?php if (isset($sejourPersonne) && isset($statutPersonne) && ($statutPersonne->nom === "Stagiaire" || $statutPersonne->nom === "Doctorant")) { ?>
                 <div class="col-12">
                     <label for="inputActivite" class="form-label text-light w-100">Activités
                         <?php if (isset($activiteModif)) { ?>
                             <span class="badge rounded-pill text-bg-warning">En attente
-                        <img src="<?= img_url('waiting.svg') ?>" alt="en attente" width="10">
-                    </span>
+                            <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
+                        </span>
                         <?php } ?></label>
                     <textarea class="form-control" id="inputActivite"
                               placeholder="Vos activités, sujet de stage, sujet de thèse…" rows="2"
@@ -233,23 +228,44 @@ if (isset($personne)) { ?>
                               name="activite"><?= $activiteModif->apres ?? $sejourPersonne->sujet ?></textarea>
                 </div>
             <?php } ?>
-            <div class="col-12">
+            <div class="col-md-12">
                 <label for="inputCommentaire" class="form-label text-light w-100">Commentaire</label>
                 <input type="text" class="form-control" id="inputCommentaire"
                        placeholder="Commentaire sur le⋅s changement⋅s"
                        name="commentaire">
             </div>
-            <div class="col-6 d-flex justify-content-center">
-                <a href="<?= $base_url . 'edit' ?>"
-                   class="btn btn-danger link-underline link-underline-opacity-0 w-50">Annuler</a>
+            <div class="col-md-6 d-grid">
+                <a href="<?= $base_url . '/edit' ?>"
+                   class="btn btn-danger link-underline link-underline-opacity-0" type="button">Annuler</a>
             </div>
-            <div class="col-6 d-flex justify-content-center">
-                <button type="submit" class="btn btn-success link-underline link-underline-opacity-0 w-50">Sauvegarder
+            <div class="col-md-6 d-grid">
+                <button type="submit" class="btn btn-success link-underline link-underline-opacity-0">Sauvegarder
                 </button>
             </div>
+        </section>
         </form>
     </main>
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <?php if (isset($errors)):
+            foreach ($errors as $error): ?>
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header text-bg-danger bg-opacity-75">
+                        <img src="<?= $img_url . 'warning.svg' ?>" class="rounded me-2" alt="attention"
+                             width="25px">
+                        <strong class="me-auto"><?= key($error) ?></strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"
+                                aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        <?php foreach ($error as $text) {
+                            echo $text;
+                        } ?>
+                    </div>
+                </div>
+            <?php endforeach;
+        endif; ?>
+    </div>
 <?php } ?>
 </body>
-<script href="<?= js_url('profile_edit') ?>"></script>
+<script src="<?= js_url('profile_edit') ?>"></script>
 </html>

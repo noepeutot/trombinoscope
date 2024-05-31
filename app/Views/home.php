@@ -32,18 +32,18 @@
                     <img class="" src="<?= img_url('search.svg') ?>" alt="statut" width="20px"
                          height="20px">
                 </span>
-                <input class="form-control border rounded-end shadow bg-body" type="search" placeholder="Recherche"
+                <input id="search" class="form-control border rounded-end shadow bg-body" type="search" placeholder="Recherche"
                        aria-label="Recherche" name="q" list="listePersonnel" data-bs-toggle="tooltip"
-                       data-bs-delay="300"
-                       data-bs-placement="top" data-bs-title="Entrer pour rechercher" value="<?= $query ?? '' ?>">
+                       data-bs-delay="300" data-bs-placement="top" data-bs-title="Entrer pour rechercher"
+                       value="<?= $query ?? '' ?>">
                 <datalist id="listePersonnel">
-                    <?php if (isset($allPersonnels)) {
+                    <?php if (isset($allPersonnels)):
                     foreach ($allPersonnels
 
-                    as $personne) { ?>
+                    as $personne): ?>
                     <option class="autocomplete" value="<?= $personne->prenom . ' ' . $personne->nom ?>">
-                        <?php }
-                        } ?>
+                        <?php endforeach;
+                        endif; ?>
                 </datalist>
             </div>
             <div class="col-auto mb-4">
@@ -138,7 +138,7 @@
     <div class="d-flex justify-content-center flex-wrap">
         <?php if (!empty($personnes)) {
             $baseUrl = base_url('profile/');
-            $imgUrl = img_url('profile/');
+            $imgUrl = img_url('profile/valide/');
             foreach ($personnes as $value) { ?>
                 <article>
                     <a class="link-offset-2 link-underline link-underline-opacity-0 card shadow bg-body m-2 p-4"

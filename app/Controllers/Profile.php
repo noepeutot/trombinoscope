@@ -57,7 +57,6 @@ class Profile extends BaseController
         $this->session = Services::session();
     }
 
-    //TODO : commentaire pour modif
     public function index($id): string
     {
         return $this->profile($id);
@@ -141,6 +140,23 @@ class Profile extends BaseController
         return view('profile', $data);
     }
 
+    public function deletePhoto()
+    {
+        $user = $this->session->get('user');
+        if ($user) {
+            $personneConnectee = $this->personneModel->getPersonneLogin($user['login']);
+            if ($personneConnectee) {
+                $this->personneID = $personneConnectee->id_personne;
+                $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'photo');
+                if ($modification) {
+                    $this->modificationModel->deleteModification($modification->id_modification);
+                }
+                return $this->edit();
+            }
+        }
+        return redirect('/');
+    }
+
     public function edit()
     {
         $data = [];
@@ -171,14 +187,54 @@ class Profile extends BaseController
                         $commentaire = $this->request->getGetPost('commentaire');
                     }
 
+                    $validationRule = [
+                        'photo_profile' => [
+                            'label' => 'Image File',
+                            'rules' => 'mime_in[photo_profile,image/jpg,image/jpeg,image/png]|max_size[photo_profile,51200]',
+                            'errors' => [
+                                'max_size' => 'Veuillez choisir une image inférieure à 50 Mo.',
+                                'mime_in' => 'Veuillez choisir une image valide du format png, jpg ou jpeg.'
+                            ]
+                        ],
+                    ];
+
                     $image = $this->request->getFile('photo_profile');
-                    var_dump($image->getSize());
-                    if (!isset($image)) {
-                        $data['errors'][] = 'fichier invalide';
-                    } else if(!$image->isValid()) {
-                        $data['errors'][] = $image->getErrorString() . '(' . $image->getError() . ')';
-                    } else {
-                        var_dump($image);
+
+                    if (!empty($image->getFileInfo()->getFilename())) {
+                        if (!$this->validateData([], $validationRule)) {
+                            $data['errors'][] = ['Erreur de modification de photo' => $this->validator->getError('photo_profile')];
+                        } else if (!$image->isValid()) {
+                            $data['errors'][] = "Erreur dans l’upload du fichier. Veuillez vérifier votre fichier et essayer ultérieurement.";
+                        } else if (!$image->hasMoved()) {
+                            $result = $image->move('assets/images/profile/en_attente',
+                                $this->personneID . '.jpg', true);
+                            if ($result) {
+                                $data['success'][] = ["Modification de la photo de profile" => "Ajout de la photo avec succès !"];
+                                $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'photo');
+                                $imgUrl = img_url('');
+                                if (empty($modification)) {
+                                    $insert = [
+                                        'id_personne' => $this->personneID,
+                                        'attribut' => "photo",
+                                        'avant' => $imgUrl . 'profile/valide/' . $this->personneID,
+                                        'apres' => $imgUrl . 'profile/en_attente/' . $this->personneID,
+                                        'statut' => "attente",
+                                        'commentaire' => $commentaire
+                                    ];
+                                    $this->modificationModel->insertModification($insert);
+                                } else {
+                                    $update = [
+                                        'apres' => $imgUrl . 'profile/en_attente/' . $this->personneID,
+                                        'commentaire' => $commentaire
+                                    ];
+                                    $this->modificationModel->updateModification($modification->id_modification, $update);
+                                }
+                            } else {
+                                $data['errors'][] = "Echec de l’ajout de l’image. Veuillez vérifier votre fichier et essayer ultérieurement.";
+                            }
+                        } else {
+                            $data['errors'][] = "Echec de l’ajout de l’image. Veuillez vérifier votre fichier et essayer ultérieurement.";
+                        }
                     }
 
                     if ($this->request->getGetPost('nom')) {
@@ -193,13 +249,19 @@ class Profile extends BaseController
                                 'statut' => "attente",
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->insertModification($insert);
+                            $result = $this->modificationModel->insertModification($insert);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du nom' => "La modification du nom n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($personne->nom !== $nom && !empty($modification)) {
                             $update = [
                                 'apres' => $nom,
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                            $result = $this->modificationModel->updateModification($modification->id_modification, $update);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du nom' => "La modification du nom n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($personne->nom == $nom && !empty($modification)) {
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
@@ -216,13 +278,19 @@ class Profile extends BaseController
                                 'statut' => "attente",
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->insertModification($insert);
+                            $result = $this->modificationModel->insertModification($insert);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du prénom' => "La modification du prénom n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($personne->prenom !== $prenom && !empty($modification)) {
                             $update = [
                                 'apres' => $prenom,
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                            $result = $this->modificationModel->updateModification($modification->id_modification, $update);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du prénom' => "La modification du prénom n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($personne->prenom == $prenom && !empty($modification)) {
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
@@ -239,13 +307,19 @@ class Profile extends BaseController
                                 'statut' => "attente",
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->insertModification($insert);
+                            $result = $this->modificationModel->insertModification($insert);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du mail' => "La modification du mail n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($mailPersonne->libelle !== $email && !empty($modification)) {
                             $update = [
                                 'apres' => $email,
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                            $result = $this->modificationModel->updateModification($modification->id_modification, $update);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du mail' => "La modification du mail n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($mailPersonne->libelle == $email && !empty($modification)) {
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
@@ -262,13 +336,19 @@ class Profile extends BaseController
                                 'statut' => "attente",
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->insertModification($insert);
+                            $result = $this->modificationModel->insertModification($insert);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du téléphone' => "La modification du téléphone n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($personne->telephone !== $telephone && !empty($modification)) {
                             $update = [
                                 'apres' => $telephone,
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                            $result = $this->modificationModel->updateModification($modification->id_modification, $update);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du téléphone' => "La modification du téléphone n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($personne->telephone == $telephone && !empty($modification)) {
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
@@ -285,13 +365,19 @@ class Profile extends BaseController
                                 'statut' => "attente",
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->insertModification($insert);
+                            $result = $this->modificationModel->insertModification($insert);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du bureau' => "La modification du bureau n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($bureauPersonne->id_bureau !== $bureau && !empty($modification)) {
                             $update = [
                                 'apres' => $bureau,
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                            $result = $this->modificationModel->updateModification($modification->id_modification, $update);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du bureau' => "La modification du bureau n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($bureauPersonne->id_bureau == $bureau && !empty($modification)) {
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
@@ -308,13 +394,19 @@ class Profile extends BaseController
                                 'statut' => "attente",
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->insertModification($insert);
+                            $result = $this->modificationModel->insertModification($insert);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du statut' => "La modification du statut n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($statutPersonne->id_statut !== $statut && !empty($modification)) {
                             $update = [
                                 'apres' => $statut,
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                            $result = $this->modificationModel->updateModification($modification->id_modification, $update);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification du statut' => "La modification du statut n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($statutPersonne->id_statut == $statut && !empty($modification)) {
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
@@ -348,13 +440,19 @@ class Profile extends BaseController
                                 'statut' => "attente",
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->insertModification($insert);
+                            $result = $this->modificationModel->insertModification($insert);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification de l\'équipe' => "La modification de l’équipe n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($equipesAPRES != $equipesAVANT && !empty($modification)) {
                             $update = [
                                 'apres' => $listEquipeAPRES,
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                            $result = $this->modificationModel->updateModification($modification->id_modification, $update);
+                            if (!$result) {
+                                $data['errors'][] = ['Modification de l\'équipe' => "La modification de l'équipe n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($equipesAPRES == $equipesAVANT && !empty($modification)) {
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
@@ -386,7 +484,10 @@ class Profile extends BaseController
                                 'statut' => "attente",
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->insertModification($insert);
+                            $result = $this->modificationModel->insertModification($insert);
+                            if (!$result) {
+                                $data['errors'][] = ["Modification de l’employeur" => "La modification de l’employeur n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($employeursAPRES != $employeursAVANT && !empty($modification)) {
                             $update = [
                                 'apres' => $listEmployeurAPRES,
@@ -409,23 +510,23 @@ class Profile extends BaseController
                                 'statut' => "attente",
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->insertModification($insert);
+                            $result = $this->modificationModel->insertModification($insert);
+                            if (!$result) {
+                                $data['errors'][] = ["Modification de l’activité" => "La modification de l’activité n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($sejourPersonne->sujet !== $activite && !empty($modification)) {
                             $update = [
                                 'apres' => $activite,
                                 'commentaire' => $commentaire
                             ];
-                            $this->modificationModel->updateModification($modification->id_modification, $update);
+                            $result = $this->modificationModel->updateModification($modification->id_modification, $update);
+                            if (!$result) {
+                                $data['errors'][] = ["Modification de l’activité" => "La modification de l’activité n’a pas pu aboutir. Veuillez réessayer."];
+                            }
                         } else if ($sejourPersonne->sujet == $activite && !empty($modification)) {
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
                     }
-
-//                    // TODO : gérer les encadrés
-//                if ($this->request->getGetPost('encadre[]')) {
-//                    $encadres = $this->request->getGetPost('encadre[]');
-//                    var_dump($encadres);
-//                }
                 }
 
                 $allEmployeurs = $this->employeurModel->getAllEmployeurs();
@@ -441,6 +542,8 @@ class Profile extends BaseController
                 $bureauModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'bureau');
                 $statutModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'statut');
                 $activiteModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'activite');
+                $photoModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'photo');
+
 
                 $equipesIDModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'equipe');
                 // Convertir la liste des id des équipes en int
@@ -549,6 +652,10 @@ class Profile extends BaseController
 
                 if (!empty($employeursModif)) {
                     $data['employeursModif'] = $employeursModif;
+                }
+
+                if (!empty($photoModif)) {
+                    $data['photoModif'] = $photoModif;
                 }
 
                 return view('profile_edit', $data);

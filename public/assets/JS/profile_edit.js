@@ -1,3 +1,7 @@
+let toast = $(".toast");
+
 $(document).ready(function () {
-    $('.selectpicker').selectpicker('toggle');
+    if(toast) {
+        toast.toast('show')
+    }
 });

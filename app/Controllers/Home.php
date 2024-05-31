@@ -62,7 +62,7 @@ class Home extends BaseController
 
     public function index()
     {
-//        $this->updateDB();
+        $this->updateDB();
 
         $user = $this->session->get('user');
         if ($user) {
@@ -159,10 +159,6 @@ class Home extends BaseController
             $this->updateSejourBD($allSejours);
         }
 
-        if (isset($allEncadrants)) {
-            $this->updateEncadrantDB($allEncadrants);
-        }
-
         if (isset($allEquipes)) {
             $this->updateEquipeDB($allEquipes);
         }
@@ -186,6 +182,10 @@ class Home extends BaseController
             }
             $this->createProfilePictures($insertImages);
             $this->updateLoginDB($insertLogin);
+        }
+
+        if (isset($allEncadrants)) {
+            $this->updateEncadrantDB($allEncadrants);
         }
     }
 
@@ -294,11 +294,20 @@ class Home extends BaseController
                 if ($personneKey === false) {
                     $this->personneModel->deletePersonne($personne->id_personne);
                 } else {
-                    $data = [
-                        'nom' => mb_strtoupper($personnelsAPI[$personneKey]['nom_usage']),
-                        'prenom' => $personnelsAPI[$personneKey]['prenom'],
-                    ];
-                    $this->personneModel->updatePersonne($personnelsAPI[$personneKey]['id_personne'], $data);
+                    $interval = new DateInterval('P3M');
+                    $date_fin = date_create_immutable(Time::createFromFormat("d/m/Y", $personnelsAPI[$personneKey]['date_fin_sejour']))
+                        ->add($interval)->format('Y-m-d');
+                    $date_actuelle = date('Y-m-d');
+
+                    if ($date_fin < $date_actuelle) {
+                        $this->personneModel->deletePersonne($personne->id_personne);
+                    } else {
+                        $data = [
+                            'nom' => mb_strtoupper($personnelsAPI[$personneKey]['nom_usage']),
+                            'prenom' => $personnelsAPI[$personneKey]['prenom'],
+                        ];
+                        $this->personneModel->updatePersonne($personnelsAPI[$personneKey]['id_personne'], $data);
+                    }
                 }
             }
 
@@ -600,12 +609,15 @@ class Home extends BaseController
 
                 if (isset($encadrant['personne']['id_personne'])) {
                     $insert += ['id_personne' => $encadrant['personne']['id_personne']];
+                    $existPersonne = $this->personneModel->getPersonne($encadrant['personne']['id_personne']) !== null;
                 } else {
-                    $insert += ['id_personne' => $encadrant['id_personne']];
+                    $insert += ['id_personne' => null];
+                    $existPersonne = true;
                 }
 
                 if (!$this->encadrantModel->getEncadrant($encadrant['id_encadrant'])
-                    && $this->sejourModel->getSejour($encadrant['id_sejour'])) {
+                    && $this->sejourModel->getSejour($encadrant['id_sejour'])
+                    && $existPersonne) {
                     $this->encadrantModel->insertEncadrant($insert);
                 }
             }
@@ -748,7 +760,7 @@ class Home extends BaseController
      */
     public function createProfilePictures($profilePicturesAPI)
     {
-        $fileFOLDER = array_diff(scandir('assets/images/profile'), array('.', '..'));
+        $fileFOLDER = array_diff(scandir('assets/images/profile/valide'), array('.', '..'));
         if (empty($profilePicturesAPI)) {
             foreach ($fileFOLDER as $file) {
                 if (is_file($file)) {
@@ -762,18 +774,18 @@ class Home extends BaseController
                 $photoKey = in_array($fileID,
                     array_column($profilePicturesAPI, 'id_personne'));
                 if ($photoKey === false) {
-                    unlink('assets/images/profile/' . $file);
+                    unlink('assets/images/profile/valide/' . $file);
                 }
             }
 
             // Modifie ou ajoute la photo de la personne et si elle n’existe pas, modifie avec une photo par défaut
             foreach ($profilePicturesAPI as $profilePicture) {
                 if (isset($profilePicture['photo'])) {
-                    file_put_contents('assets/images/profile/' . $profilePicture['id_personne'] . '.jpg',
+                    file_put_contents('assets/images/profile/valide/' . $profilePicture['id_personne'] . '.jpg',
                         file_get_contents($profilePicture['photo']));
                 } else {
-                    file_put_contents('assets/images/profile/' . $profilePicture['id_personne'] . '.jpg',
-                        file_get_contents('assets/images/default_profile.jpg'));
+                    file_put_contents('assets/images/profile/valide/' . $profilePicture['id_personne'] . '.jpg',
+                        file_get_contents('assets/images/profile/default_profile.jpg'));
                 }
             }
         }

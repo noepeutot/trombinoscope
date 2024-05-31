@@ -1,17 +1,20 @@
-$(document).ready(function () {
-    let showImg = $('#show');
-    let hideImg = $('#hide');
-    let inputPW = $('#input-pw');
-    let divPW = $('#display-pw');
+let showImg = $('#show');
+let hideImg = $('#hide');
+let inputPW = $('#input-pw');
+let divPW = $('#display-pw');
 
+$(document).ready(function () {
+    // Cacher ou afficher l’image de protection du mot de passe si on écrit dans le champ de mot de passe.
     inputPW.keyup(function () {
         if (inputPW.val()) {
             divPW.show();
         } else {
             divPW.hide();
         }
-    })
+    });
 
+    // Si click, faire changer l’image de protection de mot de passe
+    // en changeant aussi l’attribut de l’input du mot de passe.
     divPW.click(function () {
         if (showImg.is(":visible")) {
             showImg.hide();
