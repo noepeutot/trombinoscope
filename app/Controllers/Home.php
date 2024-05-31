@@ -127,6 +127,7 @@ class Home extends BaseController
         $allFinancements = $this->getAllDataFromURL('financements');
         $allRattachements = $this->getAllDataFromURL('rattachements');
 
+        // On vérifie si on a bien trouvé des données depuis l’API, si oui, on fait les appels pour faire les mises à jour.
         if (isset($allBureaux)) {
             $this->updateBureauDB($allBureaux);
         }
@@ -135,7 +136,35 @@ class Home extends BaseController
             $this->updateStatusDB($allStatuts);
         }
 
+        if (isset($allEmployeurs)) {
+            $this->updateEmployeurDB($allEmployeurs);
+        }
+
+        if (isset($allEquipes)) {
+            $this->updateEquipeDB($allEquipes);
+        }
+
         if (isset($allPersonnels)) {
+            $temp = [];
+            // On parcourt les personnels pour récupérer uniquement les personnels où le dernier séjour date de moins de 3 mois.
+            foreach ($allPersonnels as $personnel) {
+                // Création d’un intervalle de 3 mois
+                $interval = new DateInterval('P3M');
+
+                // Création de la date à partir de l’attribut date_fin_sejour de personnel
+                // avec l’ajout de l’intervalle et du changement de format
+                $date_fin = date_create_immutable(Time::createFromFormat("d/m/Y", $personnel['date_fin_sejour']))
+                    ->add($interval)->format('Y-m-d');
+
+                // Récupération de la date actuelle avec le même format
+                $date_actuelle = date('Y-m-d');
+
+                // Si la date de fin (+3mois) est plus grande que la date actuelle, alors on ajoute dans la table temporaire.
+                if ($date_fin > $date_actuelle) {
+                    $temp[] = $personnel;
+                }
+            }
+            $allPersonnels = $temp;
             $this->updatePersonnelDB($allPersonnels);
         }
 
@@ -147,20 +176,12 @@ class Home extends BaseController
             $this->updateResponsabiliteDB($allResponsabilites);
         }
 
-        if (isset($allEmployeurs)) {
-            $this->updateEmployeurDB($allEmployeurs);
-        }
-
         if (isset($allMails)) {
             $this->updateMailDB($allMails);
         }
 
         if (isset($allSejours)) {
             $this->updateSejourBD($allSejours);
-        }
-
-        if (isset($allEquipes)) {
-            $this->updateEquipeDB($allEquipes);
         }
 
         if (isset($allFinancements)) {
@@ -172,6 +193,7 @@ class Home extends BaseController
         }
 
         if (isset($allPersonnes)) {
+            // On parcourt les personnes et pour chaque personne, on récupère sa photo et son login
             foreach ($allPersonnes as $personne) {
                 if (in_array($personne['id_personne'], array_column($allPersonnels, 'id_personne'))) {
                     $insertImages[] = ['id_personne' => $personne['id_personne'],
@@ -566,65 +588,6 @@ class Home extends BaseController
     }
 
     /**
-     * Fonction de mise à jour de tous les encadrants en base de données
-     * @param $encadrantsAPI
-     * @return void
-     */
-    public function updateEncadrantDB($encadrantsAPI)
-    {
-        if (empty($encadrantsAPI)) {
-            $this->encadrantModel->deleteAll();
-        } else {
-            $result = $this->encadrantModel->getAllEncadrants();
-
-            foreach ($result as $encadrantBDD) {
-                $encadrantKey = array_search($encadrantBDD->id_encadrant,
-                    array_column($encadrantsAPI, 'id_encadrant'));
-                if ($encadrantKey === false) {
-                    $this->encadrantModel->deleteEncadrant($encadrantBDD->id_encadrant);
-                } else {
-                    $update = [
-                        'id_sejour' => $encadrantsAPI[$encadrantKey]['id_sejour'],
-                        'nom' => $encadrantsAPI[$encadrantKey]['nom'],
-                        'prenom' => $encadrantsAPI[$encadrantKey]['prenom']
-                    ];
-
-                    if (isset($encadrantsAPI[$encadrantKey]['personne']['id_personne'])) {
-                        $update += ['id_personne' => $encadrantsAPI[$encadrantKey]['personne']['id_personne']];
-                    } else {
-                        $update += ['id_personne' => NULL];
-                    }
-
-                    $this->encadrantModel->updateEncadrant($encadrantBDD->id_encadrant, $update);
-                }
-            }
-
-            foreach ($encadrantsAPI as $encadrant) {
-                $insert = [
-                    'id_encadrant' => $encadrant['id_encadrant'],
-                    'id_sejour' => $encadrant['id_sejour'],
-                    'nom' => $encadrant['nom'],
-                    'prenom' => $encadrant['prenom']
-                ];
-
-                if (isset($encadrant['personne']['id_personne'])) {
-                    $insert += ['id_personne' => $encadrant['personne']['id_personne']];
-                    $existPersonne = $this->personneModel->getPersonne($encadrant['personne']['id_personne']) !== null;
-                } else {
-                    $insert += ['id_personne' => null];
-                    $existPersonne = true;
-                }
-
-                if (!$this->encadrantModel->getEncadrant($encadrant['id_encadrant'])
-                    && $this->sejourModel->getSejour($encadrant['id_sejour'])
-                    && $existPersonne) {
-                    $this->encadrantModel->insertEncadrant($insert);
-                }
-            }
-        }
-    }
-
-    /**
      * Fonction de mise à jour de toutes les équipes en base de données
      * @param $equipesAPI
      * @return void
@@ -810,6 +773,65 @@ class Home extends BaseController
                 ];
 
                 $this->personneModel->updatePersonne($login['id_personne'], $update);
+            }
+        }
+    }
+
+    /**
+     * Fonction de mise à jour de tous les encadrants en base de données
+     * @param $encadrantsAPI
+     * @return void
+     */
+    public function updateEncadrantDB($encadrantsAPI)
+    {
+        if (empty($encadrantsAPI)) {
+            $this->encadrantModel->deleteAll();
+        } else {
+            $result = $this->encadrantModel->getAllEncadrants();
+
+            foreach ($result as $encadrantBDD) {
+                $encadrantKey = array_search($encadrantBDD->id_encadrant,
+                    array_column($encadrantsAPI, 'id_encadrant'));
+                if ($encadrantKey === false) {
+                    $this->encadrantModel->deleteEncadrant($encadrantBDD->id_encadrant);
+                } else {
+                    $update = [
+                        'id_sejour' => $encadrantsAPI[$encadrantKey]['id_sejour'],
+                        'nom' => $encadrantsAPI[$encadrantKey]['nom'],
+                        'prenom' => $encadrantsAPI[$encadrantKey]['prenom']
+                    ];
+
+                    if (isset($encadrantsAPI[$encadrantKey]['personne']['id_personne'])) {
+                        $update += ['id_personne' => $encadrantsAPI[$encadrantKey]['personne']['id_personne']];
+                    } else {
+                        $update += ['id_personne' => NULL];
+                    }
+
+                    $this->encadrantModel->updateEncadrant($encadrantBDD->id_encadrant, $update);
+                }
+            }
+
+            foreach ($encadrantsAPI as $encadrant) {
+                $insert = [
+                    'id_encadrant' => $encadrant['id_encadrant'],
+                    'id_sejour' => $encadrant['id_sejour'],
+                    'nom' => $encadrant['nom'],
+                    'prenom' => $encadrant['prenom']
+                ];
+
+                if (isset($encadrant['personne']['id_personne'])) {
+                    $insert += ['id_personne' => $encadrant['personne']['id_personne']];
+                    $existPersonne = $this->personneModel->getPersonne($encadrant['personne']['id_personne']) !== null;
+                } else {
+                    $insert += ['id_personne' => null];
+                    $existPersonne = true;
+                }
+
+                if (!$this->encadrantModel->getEncadrant($encadrant['id_encadrant'])
+                    && $this->sejourModel->getSejour($encadrant['id_sejour'])
+                    && $existPersonne) {
+                    $this->encadrantModel->insertEncadrant($insert);
+                }
             }
         }
     }
