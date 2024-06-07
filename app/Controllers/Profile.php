@@ -411,8 +411,8 @@ class Profile extends BaseController
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
                     }
-                    if ($this->request->getGetPost('equipe[]')) {
-                        $equipesAPRES = $this->request->getGetPost('equipe[]');
+                    if ($this->request->getGetPost('equipe')) {
+                        $equipesAPRES = $this->request->getGetPost('equipe');
                         $equipeINT = [];
                         foreach ($equipesAPRES as $eq) {
                             $equipeINT[] = intval($eq);
@@ -457,8 +457,8 @@ class Profile extends BaseController
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
                     }
-                    if ($this->request->getGetPost('employeur[]')) {
-                        $employeursAPRES = $this->request->getGetPost('employeur[]');
+                    if ($this->request->getGetPost('employeur')) {
+                        $employeursAPRES = $this->request->getGetPost('employeur');
                         $employeurINT = [];
                         foreach ($employeursAPRES as $employeur) {
                             $employeurINT[] = intval($employeur);

@@ -9,7 +9,6 @@
     <script src="<?= js_url('popper.v2.11.8') ?>"></script>
     <script src="<?= js_url('bootstrap.v5.3.3') ?>"></script>
     <script src="<?= js_url('jquery.v3.7.1') ?>"></script>
-    <script src="<?= js_url('login') ?>"></script>
 </head>
 <style>
     body {
@@ -53,7 +52,7 @@
             </label>
             <div class="input-group">
                 <input id="input-pw" type="password" class="form-control <?php echo isset($error) ? 'is-invalid' : ''?>" aria-label="password" name="password"
-                       placeholder="**********" required>
+                       placeholder="**********" aria-describedby="display-pw" required>
                 <div id="display-pw" class="input-group-text">
                     <img id="show" src="<?= img_url('login/show.svg') ?>" alt="voir">
                     <img id="hide" src="<?= img_url('login/hide.svg') ?>" alt="cacher">
@@ -73,5 +72,6 @@
         </div>
     </form>
 </main>
+<script src="<?= js_url('login') ?>"></script>
 </body>
 </html>

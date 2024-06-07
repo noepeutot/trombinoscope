@@ -193,7 +193,9 @@ class PersonneModel extends Model
      */
     public function getAllEncadrants(): array
     {
-        return $this->where('id_personne IN (SELECT id_personne FROM encadrant)')->find();
+        return $this->where('id_personne IN (SELECT id_personne FROM encadrant)')
+            ->orderBy('nom', 'ASC')
+            ->findAll();
     }
 
     /**

@@ -154,8 +154,8 @@ if (isset($personne)) { ?>
                         data-style="btn-light" title="Sélectionner…" name="statut" form="informations">
                     <?php if (!empty($allStatuts)) {
                         foreach ($allStatuts as $statut) { ?>
-                            <option <?php if (isset($statutModif->apres)) {
-                                echo $statutModif->apres === $statut->id_statut ? 'selected' : '';
+                            <option <?php if (isset($statutModif)) {
+                                echo $statutModif === $statut->id_statut ? 'selected' : '';
                             } else if (!empty($statutPersonne)) {
                                 echo $statut->id_statut === $statutPersonne->id_statut ? 'selected' : '';
                             } ?> value="<?= $statut->id_statut ?>">
@@ -166,7 +166,7 @@ if (isset($personne)) { ?>
                 </select>
             </div>
             <div class="col-md-6">
-                <label for="inputEquipe" class="form-label text-light">Equipe⋅s de rattachement
+                <label for="inputEquipe" class="form-label text-light">Equipe⋅s
                     <?php if (isset($equipesModif)) { ?>
                         <span class="badge rounded-pill text-bg-warning">En attente
                             <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">

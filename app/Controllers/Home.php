@@ -62,7 +62,7 @@ class Home extends BaseController
 
     public function index()
     {
-        $this->updateDB();
+//        $this->updateDB();
 
         $user = $this->session->get('user');
         if ($user) {
@@ -181,6 +181,26 @@ class Home extends BaseController
         }
 
         if (isset($allSejours)) {
+            $tempSejour = [];
+            // On parcourt les personnels pour récupérer uniquement les personnels où le dernier séjour date de moins de 3 mois.
+            foreach ($allSejours as $sejour) {
+                // Création d’un intervalle de 3 mois
+                $interval = new DateInterval('P3M');
+
+                // Création de la date à partir de l’attribut date_fin_sejour de personnel
+                // avec l’ajout de l’intervalle et du changement de format
+                $date_fin = date_create_immutable(Time::createFromFormat("d/m/Y", $sejour['date_fin_sejour']))
+                    ->add($interval)->format('Y-m-d');
+
+                // Récupération de la date actuelle avec le même format
+                $date_actuelle = date('Y-m-d');
+
+                // Si la date de fin (+3mois) est plus grande que la date actuelle, alors on ajoute dans la table temporaire.
+                if ($date_fin > $date_actuelle) {
+                    $tempSejour[] = $sejour;
+                }
+            }
+            $allSejours = $tempSejour;
             $this->updateSejourBD($allSejours);
         }
 
@@ -270,7 +290,7 @@ class Home extends BaseController
 
             foreach ($result as $statutDB) {
                 $statutKey = array_search($statutDB->id_statut,
-                    array_column($statusAPI, 'statut'));
+                    array_column($statusAPI, 'id_statut'));
                 if ($statutKey === false) {
                     $this->statutModel->deleteStatut($statutDB->id_statut);
                 } else {
@@ -289,6 +309,87 @@ class Home extends BaseController
                 ];
                 if (!$this->statutModel->getStatut($id_statut)) {
                     $this->statutModel->insertStatut($insert);
+                }
+            }
+        }
+    }
+
+    /**
+     * Fonction de mise à jour de tous les employeurs en base de données
+     * @param $employeursArray
+     * @return void
+     */
+    public function updateEmployeurDB($employeursArray)
+    {
+        if (empty($employeursArray)) {
+            $this->employeurModel->deleteAll();
+        } else {
+            $result = $this->employeurModel->getAllEmployeurs();
+
+            foreach ($result as $employeurBDD) {
+                $employeurKey = array_search($employeurBDD->id_employeur,
+                    array_column($employeursArray, 'id_org_payeur'));
+                if ($employeurKey === false) {
+                    $this->employeurModel->deleteEmployeur($employeurBDD->id_employeur);
+                } else {
+                    $update = [
+                        'nom' => $employeursArray[$employeurKey]['organisme_payeur'],
+                        'nom_court' => $employeursArray[$employeurKey]['nom_court_op']
+                    ];
+                    $this->employeurModel->updateEmployeur($employeurBDD->id_employeur, $update);
+                }
+            }
+
+            foreach ($employeursArray as $employeur) {
+                $id_employeur = $employeur['id_org_payeur'];
+                $insert = [
+                    'id_employeur' => $id_employeur,
+                    'nom' => $employeur['organisme_payeur'],
+                    'nom_court' => $employeur['nom_court_op']
+                ];
+                if (!$this->employeurModel->getEmployeur($id_employeur)) {
+                    $this->employeurModel->insertEmployeur($insert);
+                }
+            }
+        }
+    }
+
+    /**
+     * Fonction de mise à jour de toutes les équipes en base de données
+     * @param $equipesAPI
+     * @return void
+     */
+    public function updateEquipeDB($equipesAPI)
+    {
+        if (empty($equipesAPI)) {
+            $this->equipeModel->deleteAll();
+        } else {
+            $result = $this->equipeModel->getAllEquipes();
+
+            foreach ($result as $equpeDB) {
+                $equipeKey = array_search($equpeDB->id_equipe,
+                    array_column($equipesAPI, 'id_equipe'));
+                if ($equipeKey === false) {
+                    $this->equipeModel->deleteEquipe($equpeDB->id_equipe);
+                } else {
+                    $update = [
+                        'nom_court' => $equipesAPI[$equipeKey]['nom_court_groupe'],
+                        'nom_long' => $equipesAPI[$equipeKey]['nom_long_groupe']
+                    ];
+                    $this->equipeModel->updateEquipe($equpeDB->id_equipe, $update);
+                }
+            }
+
+            foreach ($equipesAPI as $equipe) {
+                $id_equipe = $equipe['id_groupe'];
+                $insert = [
+                    'id_equipe' => $id_equipe,
+                    'nom_court' => $equipe['nom_court_groupe'],
+                    'nom_long' => $equipe['nom_long_groupe']
+                ];
+
+                if (!$this->equipeModel->getEquipe($id_equipe)) {
+                    $this->equipeModel->insertEquipe($insert);
                 }
             }
         }
@@ -438,46 +539,6 @@ class Home extends BaseController
     }
 
     /**
-     * Fonction de mise à jour de tous les employeurs en base de données
-     * @param $employeursArray
-     * @return void
-     */
-    public function updateEmployeurDB($employeursArray)
-    {
-        if (empty($employeursArray)) {
-            $this->employeurModel->deleteAll();
-        } else {
-            $result = $this->employeurModel->getAllEmployeurs();
-
-            foreach ($result as $employeurBDD) {
-                $employeurKey = array_search($employeurBDD->id_employeur,
-                    array_column($employeursArray, 'id_org_payeur'));
-                if ($employeurKey === false) {
-                    $this->employeurModel->deleteEmployeur($employeurBDD->id_employeur);
-                } else {
-                    $update = [
-                        'nom' => $employeursArray[$employeurKey]['organisme_payeur'],
-                        'nom_court' => $employeursArray[$employeurKey]['nom_court_op']
-                    ];
-                    $this->employeurModel->updateEmployeur($employeurBDD->id_employeur, $update);
-                }
-            }
-
-            foreach ($employeursArray as $employeur) {
-                $id_employeur = $employeur['id_org_payeur'];
-                $insert = [
-                    'id_employeur' => $id_employeur,
-                    'nom' => $employeur['organisme_payeur'],
-                    'nom_court' => $employeur['nom_court_op']
-                ];
-                if (!$this->employeurModel->getEmployeur($id_employeur)) {
-                    $this->employeurModel->insertEmployeur($insert);
-                }
-            }
-        }
-    }
-
-    /**
      * Fonction de mise à jour de tous les mails en base de données
      * @param $mailsAPI
      * @return void
@@ -545,6 +606,8 @@ class Home extends BaseController
                     array_column($sejourAPI, 'id_sejour'));
                 if ($sejourKey === false) {
                     $this->sejourModel->deleteSejour($sejourBDD->id_sejour);
+                } else if ($this->personneModel->getPersonne($sejourBDD->id_personne) === null) {
+                    $this->sejourModel->deleteSejour($sejourBDD->id_sejour);
                 } else {
                     $update = [
                         'date_debut' => Time::createFromFormat("d/m/Y", $sejourAPI[$sejourKey]['date_debut_sejour']),
@@ -582,47 +645,6 @@ class Home extends BaseController
                 if (!$this->sejourModel->getSejour($sejour['id_sejour'])
                     && $this->personneModel->getPersonne($id_personne)) {
                     $this->sejourModel->insertSejour($insert);
-                }
-            }
-        }
-    }
-
-    /**
-     * Fonction de mise à jour de toutes les équipes en base de données
-     * @param $equipesAPI
-     * @return void
-     */
-    public function updateEquipeDB($equipesAPI)
-    {
-        if (empty($equipesAPI)) {
-            $this->equipeModel->deleteAll();
-        } else {
-            $result = $this->equipeModel->getAllEquipes();
-
-            foreach ($result as $equpeDB) {
-                $equipeKey = array_search($equpeDB->id_equipe,
-                    array_column($equipesAPI, 'id_equipe'));
-                if ($equipeKey === false) {
-                    $this->equipeModel->deleteEquipe($equpeDB->id_equipe);
-                } else {
-                    $update = [
-                        'nom_court' => $equipesAPI[$equipeKey]['nom_court_groupe'],
-                        'nom_long' => $equipesAPI[$equipeKey]['nom_long_groupe']
-                    ];
-                    $this->equipeModel->updateEquipe($equpeDB->id_equipe, $update);
-                }
-            }
-
-            foreach ($equipesAPI as $equipe) {
-                $id_equipe = $equipe['id_groupe'];
-                $insert = [
-                    'id_equipe' => $id_equipe,
-                    'nom_court' => $equipe['nom_court_groupe'],
-                    'nom_long' => $equipe['nom_long_groupe']
-                ];
-
-                if (!$this->equipeModel->getEquipe($id_equipe)) {
-                    $this->equipeModel->insertEquipe($insert);
                 }
             }
         }

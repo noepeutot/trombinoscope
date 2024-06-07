@@ -43,7 +43,7 @@ class StatutModel extends Model
      */
     public function getAllStatuts(): array
     {
-        return $this->findAll();
+        return $this->orderBy('nom', 'ASC')->findAll();
     }
 
     /**

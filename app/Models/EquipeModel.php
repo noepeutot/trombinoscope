@@ -44,7 +44,7 @@ class EquipeModel extends Model
      */
     public function getAllEquipes(): array
     {
-        return $this->findAll();
+        return $this->orderBy('nom_court', 'ASC')->findAll();
     }
 
     /**
@@ -91,7 +91,7 @@ class EquipeModel extends Model
         FROM equipe e, rattachement r, sejour s
         WHERE e.id_equipe=r.id_equipe
         AND r.id_sejour=s.id_sejour
-        AND s.id_personne='. $id_personne.')')->find();
+        AND s.id_personne=' . $id_personne . ')')->find();
     }
 
     /**
