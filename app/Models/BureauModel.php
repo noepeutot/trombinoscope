@@ -71,11 +71,11 @@ class BureauModel extends Model
     /**
      * Fonction qui permet de retourner un bureau à partir de son id
      * @param int $id_bureau
-     * @return array
+     * @return array|object|null
      */
-    public function getBureau(int $id_bureau): array
+    public function getBureau(int $id_bureau)
     {
-        return $this->where('id_bureau', $id_bureau)->find();
+        return $this->where('id_bureau', $id_bureau)->first();
     }
 
     /**

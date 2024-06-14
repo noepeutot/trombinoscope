@@ -72,11 +72,11 @@ class EquipeModel extends Model
     /**
      * Fonction qui permet de retourner une équipe à partir de son id
      * @param int $id_equipe
-     * @return array
+     * @return array|object|null
      */
-    public function getEquipe(int $id_equipe): array
+    public function getEquipe(int $id_equipe)
     {
-        return $this->where('id_equipe', $id_equipe)->find();
+        return $this->where('id_equipe', $id_equipe)->first();
     }
 
     /**

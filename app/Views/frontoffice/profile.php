@@ -1,18 +1,22 @@
+<?php $cssUrl = css_url('');
+$jsUrl = js_url('');
+$imgUrl = img_url('');
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Trombinoscope</title>
-    <link href="<?= css_url('profile') ?>" rel='stylesheet'>
-    <link href="<?= css_url('bootstrap.min.v5.3.3') ?>" rel="stylesheet">
-    <script src="<?= js_url('popper.v2.11.8') ?>"></script>
-    <script src="<?= js_url('bootstrap.v5.3.3') ?>"></script>
-    <script src="<?= js_url('jquery.v3.7.1') ?>"></script>
+    <link href="<?= $cssUrl . 'profile.css' ?>" rel='stylesheet'>
+    <link href="<?= $cssUrl . 'bootstrap.min.v5.3.3.css' ?>" rel="stylesheet">
+    <script src="<?= $jsUrl . 'popper.v2.11.8.js' ?>"></script>
+    <script src="<?= $jsUrl . 'bootstrap.v5.3.3.js' ?>"></script>
+    <script src="<?= $jsUrl . 'jquery.v3.7.1.js' ?>"></script>
 </head>
 <style>
     body {
-        background: url("<?= img_url('wave_main.svg') ?>") no-repeat top;
+        background: url("<?= $imgUrl . 'wave_main.svg' ?>") no-repeat top;
         -webkit-background-size: 100% auto;
         -moz-background-size: 100% auto;
         -o-background-size: 100% auto;
@@ -20,12 +24,12 @@
     }
 </style>
 <body>
-<?= $this->include('header') ?>
+<?= $this->include('frontoffice/header') ?>
 <?php if (isset($personne)) { ?>
     <main class="d-flex flex-column justify-content-center align-items-center">
         <section class="d-flex flex-column justify-content-center align-items-center mb-5">
             <img id="profilePicture" class="border border-5 border-light rounded-3"
-                 src="<?= img_url('profile/valide/' . $personne->id_personne . '.jpg') ?>"
+                 src="<?= $imgUrl . 'profile/valide/' . $personne->id_personne . '.jpg' ?>"
                  alt="photographie">
             <h2><?= $personne->nom . ' ' . $personne->prenom ?></h2>
 

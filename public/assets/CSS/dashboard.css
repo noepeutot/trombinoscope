@@ -1,0 +1,11 @@
+* {
+    /*outline: red dashed 1px;*/
+}
+
+.picture-user {
+    max-width: 50px;
+}
+
+.picture {
+    max-width: 25px;
+}

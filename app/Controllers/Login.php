@@ -3,8 +3,6 @@
 namespace App\Controllers;
 
 use App\Models\PersonneModel;
-use App\Models\UtilisateurModel;
-use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
@@ -61,7 +59,7 @@ class Login extends BaseController
                 $data['error'] = $this->session->get('error');
             }
         }
-        return view('login', $data);
+        return view('frontoffice/login', $data);
     }
 
     /**

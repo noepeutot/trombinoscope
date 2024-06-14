@@ -60,10 +60,8 @@ class Home extends BaseController
         $this->session = Services::session();
     }
 
-    public function index()
+    public function index(): string
     {
-//        $this->updateDB();
-
         $user = $this->session->get('user');
         if ($user) {
             $personneConnectee = $this->personneModel->getPersonneLogin($user['login']);
@@ -97,7 +95,56 @@ class Home extends BaseController
         $data['personnes'] = $this->personnels;
         $data['allPersonnels'] = $this->allPersonnels;
 
-        return view('home', $data);
+        return view('frontoffice/home', $data);
+    }
+
+    /**
+     * Fonction qui permet de retourner les personnes en base de données
+     * @return array
+     */
+    public function getPersonnes(): array
+    {
+        return $this->personneModel->getAllPersonnes();
+    }
+
+    /**
+     * Fonction qui permet la recherche
+     * @param $query
+     * @param $statuts
+     * @param $equipes
+     * @param $tuteurs
+     * @return array
+     */
+    public function search($query, $statuts, $equipes, $tuteurs): array
+    {
+        return $this->personneModel->searchPersonne($query, $statuts, $equipes, $tuteurs);
+    }
+
+    /**
+     * Fonction qui permet de retourner les statuts en base de données
+     * @return array
+     */
+    public function getStatuts(): array
+    {
+        return $this->statutModel->getAllStatuts();
+    }
+
+    /**
+     * Fonction qui permet de retourner les équipes en base de données
+     * @return array
+     */
+    public function getEquipes(): array
+    {
+        return $this->equipeModel->getAllEquipes();
+    }
+
+    /**
+     * Fonction qui permet de retourner les tuteurs en base de données
+     * @return array
+     */
+    public function getEncadrants(): array
+    {
+        return $this->personneModel->getAllEncadrants();
     }
 
     /**
@@ -745,7 +792,8 @@ class Home extends BaseController
      */
     public function createProfilePictures($profilePicturesAPI)
     {
-        $fileFOLDER = array_diff(scandir('assets/images/profile/valide'), array('.', '..'));
+        // TODO : faire photo pour stagiaire et chercheur invité
+        $fileFOLDER = array_diff(scandir(FCPATH . 'assets/images/profile/valide'), array('.', '..'));
         if (empty($profilePicturesAPI)) {
             foreach ($fileFOLDER as $file) {
                 if (is_file($file)) {
@@ -759,18 +807,18 @@ class Home extends BaseController
                 $photoKey = in_array($fileID,
                     array_column($profilePicturesAPI, 'id_personne'));
                 if ($photoKey === false) {
-                    unlink('assets/images/profile/valide/' . $file);
+                    unlink(FCPATH . 'assets/images/profile/valide/' . $file);
                 }
             }
 
             // Modifie ou ajoute la photo de la personne et si elle n’existe pas, modifie avec une photo par défaut
             foreach ($profilePicturesAPI as $profilePicture) {
                 if (isset($profilePicture['photo'])) {
-                    file_put_contents('assets/images/profile/valide/' . $profilePicture['id_personne'] . '.jpg',
+                    file_put_contents(FCPATH . 'assets/images/profile/valide/' . $profilePicture['id_personne'] . '.jpg',
                         file_get_contents($profilePicture['photo']));
                 } else {
-                    file_put_contents('assets/images/profile/valide/' . $profilePicture['id_personne'] . '.jpg',
-                        file_get_contents('assets/images/profile/default_profile.jpg'));
+                    file_put_contents(FCPATH . 'assets/images/profile/valide/' . $profilePicture['id_personne'] . '.jpg',
+                        file_get_contents(FCPATH . 'assets/images/profile/default_profile.jpg'));
                 }
             }
         }
@@ -856,55 +904,6 @@ class Home extends BaseController
                 }
             }
         }
-    }
-
-    /**
-     * Fonction qui permet de retourner les personnes en base de données
-     * @return array
-     */
-    public function getPersonnes(): array
-    {
-        return $this->personneModel->getAllPersonnes();
-    }
-
-    /**
-     * Fonction qui permet la recherche
-     * @param $query
-     * @param $statuts
-     * @param $equipes
-     * @param $tuteurs
-     * @return array
-     */
-    public function search($query, $statuts, $equipes, $tuteurs): array
-    {
-        return $this->personneModel->searchPersonne($query, $statuts, $equipes, $tuteurs);
-    }
-
-    /**
-     * Fonction qui permet de retourner les statuts en base de données
-     * @return array
-     */
-    public function getStatuts(): array
-    {
-        return $this->statutModel->getAllStatuts();
-    }
-
-    /**
-     * Fonction qui permet de retourner les équipes en base de données
-     * @return array
-     */
-    public function getEquipes(): array
-    {
-        return $this->equipeModel->getAllEquipes();
-    }
-
-    /**
-     * Fonction qui permet de retourner les tuteurs en base de données
-     * @return array
-     */
-    public function getEncadrants(): array
-    {
-        return $this->personneModel->getAllEncadrants();
     }
 
     public function beautifulPrint($data)

@@ -47,6 +47,20 @@ class PersonneModel extends Model
     }
 
     /**
+     * @param int $nombreLimite
+     * @return array|null|object
+     */
+    public function getPersonneRecente(int $nombreLimite)
+    {
+        return $this->join('sejour', 'personne.id_personne = sejour.id_personne', 'inner')
+            ->orderBy('date_debut', 'desc')
+            ->limit($nombreLimite)
+//            ->join('statut', 'personne.statut = statut.id_statut')
+            ->join('mail', 'personne.id_personne = mail.id_personne', 'inner')
+            ->find();
+    }
+
+    /**
      * Fonction qui ajoute ou met à jour les informations d’une personne
      * @param array $personne
      * @return bool

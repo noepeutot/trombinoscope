@@ -4,7 +4,7 @@ if ( ! function_exists('css_url'))
 {
     function css_url($nom): string
     {
-        return base_url() . 'assets/CSS/' . $nom . '.css';
+        return base_url() . 'assets/CSS/' . $nom;
     }
 }
 
@@ -12,7 +12,7 @@ if ( ! function_exists('js_url'))
 {
     function js_url($nom): string
     {
-        return base_url() . 'assets/JS/' . $nom . '.js';
+        return base_url() . 'assets/JS/' . $nom;
     }
 }
 

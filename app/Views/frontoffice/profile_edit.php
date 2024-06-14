@@ -1,21 +1,27 @@
+<?php
+$cssUrl = css_url('');
+$jsUrl = js_url('');
+$base_url = base_url('profile');
+$img_url = img_url('');
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Trombinoscope</title>
-    <link href="<?= css_url('profile_edit') ?>" rel='stylesheet'>
-    <link href="<?= css_url('bootstrap.min.v5.3.3') ?>" rel="stylesheet">
-    <script src="<?= js_url('popper.v2.11.8') ?>"></script>
-    <script src="<?= js_url('bootstrap.v5.3.3') ?>"></script>
-    <script src="<?= js_url('jquery.v3.7.1') ?>"></script>
+    <link href="<?= $cssUrl . 'profile_edit.css' ?>" rel='stylesheet'>
+    <link href="<?= $cssUrl . 'bootstrap.min.v5.3.3.css' ?>" rel="stylesheet">
+    <script src="<?= $jsUrl . 'popper.v2.11.8.js' ?>"></script>
+    <script src="<?= $jsUrl . 'bootstrap.v5.3.3.js' ?>"></script>
+    <script src="<?= $jsUrl . 'jquery.v3.7.1.js' ?>"></script>
 
-    <link href="<?= css_url('bootstrap-select.min.v1.13.18') ?>" rel="stylesheet">
-    <script src="<?= js_url('bootstrap-select.v1.14.0') ?>"></script>
+    <link href="<?= $cssUrl . 'bootstrap-select.min.v1.13.18.css' ?>" rel="stylesheet">
+    <script src="<?= $jsUrl . 'bootstrap-select.v1.14.0.js' ?>"></script>
 </head>
 <style>
     body {
-        background: #88B6F2 url("<?= img_url('wave_edit.svg') ?>") no-repeat fixed center center;
+        background: #88B6F2 url("<?= $img_url . 'wave_edit.svg' ?>") no-repeat fixed center center;
         -webkit-background-size: cover;
         -moz-background-size: cover;
         -o-background-size: cover;
@@ -23,10 +29,8 @@
     }
 </style>
 <body>
-<?= $this->include('header') ?>
-<?php $base_url = base_url('profile');
-$img_url = img_url('');
-if (isset($personne)) { ?>
+<?= $this->include('frontoffice/header') ?>
+<?php if (isset($personne)) { ?>
     <main class="justify-content-center w-100 pt-5 row">
         <?= form_open_multipart($base_url . '/edit', "class='row w-75' id='informations'") ?>
         <section class="col-4 row">
@@ -267,5 +271,5 @@ if (isset($personne)) { ?>
     </div>
 <?php } ?>
 </body>
-<script src="<?= js_url('profile_edit') ?>"></script>
+<script src="<?= $jsUrl . 'profile_edit.js' ?>"></script>
 </html>

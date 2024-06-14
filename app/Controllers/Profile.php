@@ -137,7 +137,7 @@ class Profile extends BaseController
             $data['responsables'] = $this->personneModel->getResponsablePersonne($personne->id_personne, $sejour->id_sejour);
         }
 
-        return view('profile', $data);
+        return view('frontoffice/profile', $data);
     }
 
     public function deletePhoto()
@@ -210,12 +210,12 @@ class Profile extends BaseController
                                 $this->personneID . '.jpg', true);
                             if ($result) {
                                 $data['success'][] = ["Modification de la photo de profile" => "Ajout de la photo avec succès !"];
-                                $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'photo');
+                                $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Photo');
                                 $imgUrl = img_url('');
                                 if (empty($modification)) {
                                     $insert = [
                                         'id_personne' => $this->personneID,
-                                        'attribut' => "photo",
+                                        'attribut' => "Photo",
                                         'avant' => $imgUrl . 'profile/valide/' . $this->personneID,
                                         'apres' => $imgUrl . 'profile/en_attente/' . $this->personneID,
                                         'statut' => "attente",
@@ -239,11 +239,11 @@ class Profile extends BaseController
 
                     if ($this->request->getGetPost('nom')) {
                         $nom = $this->request->getGetPost('nom');
-                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'nom');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Nom');
                         if ($personne->nom !== $nom && empty($modification)) {
                             $insert = [
                                 'id_personne' => $this->personneID,
-                                'attribut' => "nom",
+                                'attribut' => "Nom",
                                 'avant' => $personne->nom,
                                 'apres' => $nom,
                                 'statut' => "attente",
@@ -268,11 +268,11 @@ class Profile extends BaseController
                     }
                     if ($this->request->getGetPost('prenom')) {
                         $prenom = $this->request->getGetPost('prenom');
-                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'prenom');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Prénom');
                         if ($personne->prenom !== $prenom && empty($modification)) {
                             $insert = [
                                 'id_personne' => $this->personneID,
-                                'attribut' => "prenom",
+                                'attribut' => "Prénom",
                                 'avant' => $personne->prenom,
                                 'apres' => $prenom,
                                 'statut' => "attente",
@@ -297,11 +297,11 @@ class Profile extends BaseController
                     }
                     if ($this->request->getGetPost('email')) {
                         $email = $this->request->getGetPost('email');
-                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'mail');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Mail');
                         if ($mailPersonne->libelle !== $email && empty($modification)) {
                             $insert = [
                                 'id_personne' => $this->personneID,
-                                'attribut' => "mail",
+                                'attribut' => "Mail",
                                 'avant' => $mailPersonne->libelle,
                                 'apres' => $email,
                                 'statut' => "attente",
@@ -326,11 +326,11 @@ class Profile extends BaseController
                     }
                     if ($this->request->getGetPost('telephone')) {
                         $telephone = $this->request->getGetPost('telephone');
-                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'telephone');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Téléphone');
                         if ($personne->telephone !== $telephone && empty($modification)) {
                             $insert = [
                                 'id_personne' => $this->personneID,
-                                'attribut' => "telephone",
+                                'attribut' => "Téléphone",
                                 'avant' => $personne->telephone,
                                 'apres' => $telephone,
                                 'statut' => "attente",
@@ -355,11 +355,11 @@ class Profile extends BaseController
                     }
                     if ($this->request->getGetPost('bureau')) {
                         $bureau = intval($this->request->getGetPost('bureau'));
-                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'bureau');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Bureau');
                         if ($bureauPersonne->id_bureau !== $bureau && empty($modification)) {
                             $insert = [
                                 'id_personne' => $this->personneID,
-                                'attribut' => "bureau",
+                                'attribut' => "Bureau",
                                 'avant' => $bureauPersonne->id_bureau,
                                 'apres' => $bureau,
                                 'statut' => "attente",
@@ -384,11 +384,11 @@ class Profile extends BaseController
                     }
                     if ($this->request->getGetPost('statut')) {
                         $statut = intval($this->request->getGetPost('statut'));
-                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'statut');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Statut');
                         if ($statutPersonne->id_statut !== $statut && empty($modification)) {
                             $insert = [
                                 'id_personne' => $this->personneID,
-                                'attribut' => "statut",
+                                'attribut' => "Statut",
                                 'avant' => $statutPersonne->id_statut,
                                 'apres' => $statut,
                                 'statut' => "attente",
@@ -429,12 +429,12 @@ class Profile extends BaseController
 
                         $listEquipeAPRES = implode(', ', $equipesAPRES);
 
-                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'equipe');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Equipe');
                         if ($equipesAPRES != $equipesAVANT && empty($modification)) {
                             $listEquipeAVANT = implode(', ', $equipesAVANT);
                             $insert = [
                                 'id_personne' => $this->personneID,
-                                'attribut' => "equipe",
+                                'attribut' => "Equipe",
                                 'avant' => $listEquipeAVANT,
                                 'apres' => $listEquipeAPRES,
                                 'statut' => "attente",
@@ -473,12 +473,12 @@ class Profile extends BaseController
                         asort($employeursAVANT);
                         asort($employeursAPRES);
                         $listEmployeurAPRES = implode(', ', $employeursAPRES);
-                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'employeur');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Employeur');
                         if ($employeursAPRES != $employeursAVANT && empty($modification)) {
                             $listEmployeurAVANT = implode(', ', $employeursAVANT);
                             $insert = [
                                 'id_personne' => $this->personneID,
-                                'attribut' => "employeur",
+                                'attribut' => "Employeur",
                                 'avant' => $listEmployeurAVANT,
                                 'apres' => $listEmployeurAPRES,
                                 'statut' => "attente",
@@ -500,11 +500,11 @@ class Profile extends BaseController
                     }
                     if ($this->request->getGetPost('activite')) {
                         $activite = $this->request->getGetPost('activite');
-                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'activite');
+                        $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Activité');
                         if ($sejourPersonne->sujet !== $activite && empty($modification)) {
                             $insert = [
                                 'id_personne' => $this->personneID,
-                                'attribut' => "activite",
+                                'attribut' => "Activité",
                                 'avant' => $sejourPersonne->sujet,
                                 'apres' => $activite,
                                 'statut' => "attente",
@@ -535,17 +535,17 @@ class Profile extends BaseController
                 $allEquipes = $this->equipeModel->getAllEquipes();
 
                 // Données des modifications en attente si existantes
-                $nomModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'nom');
-                $prenomModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'prenom');
-                $mailModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'mail');
-                $telephoneModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'telephone');
-                $bureauModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'bureau');
-                $statutModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'statut');
-                $activiteModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'activite');
-                $photoModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'photo');
+                $nomModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Nom');
+                $prenomModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Prénom');
+                $mailModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Mail');
+                $telephoneModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Téléphone');
+                $bureauModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Bureau');
+                $statutModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Statut');
+                $activiteModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Activité');
+                $photoModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Photo');
 
 
-                $equipesIDModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'equipe');
+                $equipesIDModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Equipe');
                 // Convertir la liste des id des équipes en int
                 $equipesModif = [];
                 if (!empty($equipesIDModif)) {
@@ -555,7 +555,7 @@ class Profile extends BaseController
                     }
                 }
 
-                $employeursIDModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'employeur');
+                $employeursIDModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Employeur');
                 // Convertir la liste des id des employeurs en int
                 $employeursModif = [];
                 if (!empty($employeursIDModif)) {
@@ -658,7 +658,7 @@ class Profile extends BaseController
                     $data['photoModif'] = $photoModif;
                 }
 
-                return view('profile_edit', $data);
+                return view('frontoffice/profile_edit', $data);
             }
         }
         return redirect('/');

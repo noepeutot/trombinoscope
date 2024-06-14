@@ -11,5 +11,5 @@
         </a>
     <?php } ?>
 
-    <?= $this->include('navbar') ?>
+    <?= $this->include('frontoffice/navbar') ?>
 </header>

@@ -72,11 +72,11 @@ class EmployeurModel extends Model
     /**
      * Fonction qui permet de retourner un employeur à partir de son id
      * @param int $id_employeur
-     * @return array
+     * @return array|object|null
      */
-    public function getEmployeur(int $id_employeur): array
+    public function getEmployeur(int $id_employeur)
     {
-        return $this->where('id_employeur', $id_employeur)->find();
+        return $this->where('id_employeur', $id_employeur)->first();
     }
 
     /**

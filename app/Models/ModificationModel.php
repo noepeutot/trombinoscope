@@ -54,6 +54,18 @@ class ModificationModel extends Model
     }
 
     /**
+     * Fonction qui retourne un certain nombre des dernières modifications
+     * @param int $nombreLimite
+     * @return array|null|object
+     */
+    public function getModificationRecente(int $nombreLimite)
+    {
+        return $this->orderBy('id_modification', 'DESC')
+            ->limit($nombreLimite)
+            ->find();
+    }
+
+    /**
      * Fonction qui supprimer une modification
      * @param $id_modification
      * @return bool|BaseResult
