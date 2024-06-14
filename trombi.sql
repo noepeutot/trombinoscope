@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : ven. 31 mai 2024 à 14:18
+-- Généré le : ven. 14 juin 2024 à 15:26
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -126,7 +126,7 @@ DROP TABLE IF EXISTS `modification`;
 CREATE TABLE IF NOT EXISTS `modification` (
   `id_modification` int NOT NULL AUTO_INCREMENT,
   `id_personne` int NOT NULL,
-  `attribut` varchar(255) NOT NULL,
+  `attribut` enum('Nom','Prénom','Mail','Téléphone','Bureau','Statut','Activité','Photo','Equipe','Employeur') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `avant` text NOT NULL,
   `apres` text NOT NULL,
   `statut` enum('attente','valide','annule') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
@@ -230,10 +230,9 @@ CREATE TABLE IF NOT EXISTS `statut` (
 
 DROP TABLE IF EXISTS `utilisateur`;
 CREATE TABLE IF NOT EXISTS `utilisateur` (
-  `id_utilisateur` int NOT NULL,
+  `id_utilisateur` int NOT NULL AUTO_INCREMENT,
   `id_personne` int DEFAULT NULL,
-  `login` varchar(255) NOT NULL,
-  `statut` varchar(255) NOT NULL,
+  `statut` enum('admin','modo') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   PRIMARY KEY (`id_utilisateur`),
   KEY `id_personne` (`id_personne`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
