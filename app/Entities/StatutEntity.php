@@ -8,6 +8,6 @@ class StatutEntity extends Entity
 {
     protected $casts = [
         'id_statut' => 'int',
-        'nom' => 'string'
+        'statut' => 'string'
     ];
 }

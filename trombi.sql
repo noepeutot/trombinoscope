@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : ven. 14 juin 2024 à 15:26
+-- Généré le : jeu. 20 juin 2024 à 13:57
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -217,9 +217,9 @@ CREATE TABLE IF NOT EXISTS `sejour` (
 DROP TABLE IF EXISTS `statut`;
 CREATE TABLE IF NOT EXISTS `statut` (
   `id_statut` int NOT NULL,
-  `nom` varchar(255) NOT NULL,
+  `statut` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   PRIMARY KEY (`id_statut`),
-  KEY `nom` (`nom`(250))
+  KEY `nom` (`statut`(250))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -273,31 +273,6 @@ ALTER TABLE `modification`
 ALTER TABLE `personne`
   ADD CONSTRAINT `cle_etrangere_bureau` FOREIGN KEY (`bureau`) REFERENCES `bureau` (`id_bureau`) ON DELETE SET NULL ON UPDATE SET NULL,
   ADD CONSTRAINT `cle_etrangere_statut` FOREIGN KEY (`statut`) REFERENCES `statut` (`id_statut`) ON DELETE SET NULL ON UPDATE SET NULL;
-
---
--- Contraintes pour la table `rattachement`
---
-ALTER TABLE `rattachement`
-  ADD CONSTRAINT `cle_etrangere_id_equipe` FOREIGN KEY (`id_equipe`) REFERENCES `equipe` (`id_equipe`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `cle_etrangere_id_sejour` FOREIGN KEY (`id_sejour`) REFERENCES `sejour` (`id_sejour`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Contraintes pour la table `responsabilite`
---
-ALTER TABLE `responsabilite`
-  ADD CONSTRAINT `responsabilite_cle_etrangere` FOREIGN KEY (`id_personne`) REFERENCES `personne` (`id_personne`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Contraintes pour la table `sejour`
---
-ALTER TABLE `sejour`
-  ADD CONSTRAINT `sejour_clé_etrangere` FOREIGN KEY (`id_personne`) REFERENCES `personne` (`id_personne`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Contraintes pour la table `utilisateur`
---
-ALTER TABLE `utilisateur`
-  ADD CONSTRAINT `cle_etrangere_id_personne` FOREIGN KEY (`id_personne`) REFERENCES `personne` (`id_personne`) ON DELETE SET NULL ON UPDATE SET NULL;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

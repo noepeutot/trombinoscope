@@ -14,6 +14,7 @@ use App\Models\PersonneModel;
 use App\Models\ResponsabiliteModel;
 use App\Models\SejourModel;
 use App\Models\StatutModel;
+use CodeIgniter\HTTP\RedirectResponse;
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\Session\Session;
@@ -57,16 +58,16 @@ class Profile extends BaseController
         $this->session = Services::session();
     }
 
-    public function index($id): string
+    public function index($id)
     {
         return $this->profile($id);
     }
 
     /** Fonction qui permet de gérer l’affichage du profile
      * @param $id
-     * @return string
+     * @return string | RedirectResponse
      */
-    public function profile($id): string
+    public function profile($id)
     {
         $data = [];
 
@@ -81,6 +82,10 @@ class Profile extends BaseController
         $this->personneID = $id;
 
         $personne = $this->personneModel->getPersonne($this->personneID);
+
+        if(!$personne) {
+            return redirect('/');
+        }
         $mails = $this->mailModel->getMailPersonne($this->personneID);
 
         $employeurs = $this->employeurModel->getEmployeurPersonne($this->personneID);

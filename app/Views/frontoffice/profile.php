@@ -50,7 +50,7 @@ $imgUrl = img_url('');
             <?php if (isset($statut)) { ?>
                 <div class="col-4 my-2">
                     <p class="fw-light mb-1">Catégorie</p>
-                    <p class="fw-bold mb-0"><?= $statut->nom ?></p>
+                    <p class="fw-bold mb-0"><?= $statut->statut ?></p>
                 </div>
             <?php } ?>
             <?php if (isset($equipes)) { ?>

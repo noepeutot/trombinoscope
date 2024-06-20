@@ -43,14 +43,15 @@ $imgUrl = img_url('');
     </section>
     <section class="border rounded p-2 mb-4">
         <h4 class="h4">Dernières modifications</h4>
-        <div class="row d-flex flex-wrap justify-content-evenly m-2 gap-2">
-            <?php if (isset($modificationRecente)):
-                foreach ($modificationRecente as $modification):?>
+        <?php if (isset($modificationRecente)): ?>
+            <div class="row d-flex flex-wrap justify-content-evenly m-2 gap-2">
+                <?php foreach ($modificationRecente as $modification): ?>
                     <article class="col-sm card px-0">
                         <div class="card-header hstack gap-3">
                         <span class="fs-6">
 <!--                            <img class="picture rounded-circle" alt="photo"-->
-<!--                                 src="--><?php //= $imgUrl . 'profile/valide/' . $modification->id_personne ?><!--">-->
+                            <!--                                 src="-->
+                            <?php //= $imgUrl . 'profile/valide/' . $modification->id_personne ?><!--">-->
                             <?= $modification->nom . ' ' . $modification->prenom ?>
                         </span>
                             <span class="badge text-bg-secondary ms-auto">
@@ -59,7 +60,7 @@ $imgUrl = img_url('');
                         </div>
                         <div class="card-body">
                             <?php if ($modification->attribut !== "Photo"): ?>
-                                <div>
+                                <div class="d-flex flex-column align-items-center mb-3">
                                     <span class="fw-bold fst-italic me-2">
                                         Ancien
                                     </span>
@@ -67,7 +68,7 @@ $imgUrl = img_url('');
                                         <?php if ($modification->attribut === "Bureau" && isset($bureauAvant)) {
                                             echo $bureauAvant->numero;
                                         } elseif ($modification->attribut === "Statut" && isset($statutAvant)) {
-                                            echo $statutAvant->nom;
+                                            echo $statutAvant->statut;
                                         } elseif ($modification->attribut === "Equipe" && isset($equipeAvant)) {
                                             foreach ($equipeAvant as $equipe) {
                                                 echo $equipe->nom_court;
@@ -83,18 +84,18 @@ $imgUrl = img_url('');
                                         } ?>
                                     </span>
                                 </div>
-                                <div>
+                                <div class="d-flex flex-column align-items-center">
                                     <span class="fw-bold text-primary bg-primary-subtle border rounded position-relative px-2">
                                         Nouveau
                                         <img class="position-absolute top-0 start-100 translate-middle"
                                              src="<?= $imgUrl . 'backoffice/star-yellow.svg' ?>"
                                              alt="nouveau">
                                     </span>
-                                    <span class="">
+                                    <span class="text-center text-break text-truncate-span">
                                         <?php if ($modification->attribut === "Bureau" && isset($bureauApres)) {
                                             echo $bureauApres->numero;
                                         } elseif ($modification->attribut === "Statut" && isset($statutApres)) {
-                                            echo $statutApres->nom;
+                                            echo $statutApres->statut;
                                         } elseif ($modification->attribut === "Equipe" && isset($equipeApres)) {
                                             foreach ($equipeApres as $equipe) {
                                                 echo $equipe->nom_court;
@@ -141,11 +142,11 @@ $imgUrl = img_url('');
 
                         </div>
                     </article>
-                <?php endforeach;
-            else: ?>
-                <p class="m-3">Aucune personne n’a été ajouté récemment…</p>
-            <?php endif; ?>
-        </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <p class="col m-3">Aucune personne n’a été ajouté récemment…</p>
+        <?php endif; ?>
     </section>
 </main>
 </body>

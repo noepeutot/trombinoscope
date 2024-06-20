@@ -9,3 +9,10 @@
 .picture {
     max-width: 25px;
 }
+
+.text-truncate-span {
+    -webkit-line-clamp: 3;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}

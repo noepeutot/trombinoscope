@@ -73,7 +73,7 @@ $imgUrl = img_url('');
                                             echo 'checked';
                                         ?>>
                                     <label for="<?= 'statut' . $value->id_statut ?>"
-                                           class="form-check-label"><?= $value->nom ?></label>
+                                           class="form-check-label"><?= $value->statut ?></label>
                                 </li>
                             <?php }
                         } ?>

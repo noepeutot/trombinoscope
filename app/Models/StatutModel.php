@@ -17,7 +17,7 @@ class StatutModel extends Model
 
     protected $allowedFields = [
         'id_statut',
-        'nom'
+        'statut'
     ];
 
     public function __construct()
@@ -43,7 +43,7 @@ class StatutModel extends Model
      */
     public function getAllStatuts(): array
     {
-        return $this->orderBy('nom', 'ASC')->findAll();
+        return $this->orderBy('statut', 'ASC')->findAll();
     }
 
     /**

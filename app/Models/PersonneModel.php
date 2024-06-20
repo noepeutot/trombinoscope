@@ -90,7 +90,7 @@ class PersonneModel extends Model
     {
         try {
 
-            $allPersonnes = $this->getAllPersonnes();
+            $allPersonnes = $this->getAllPersonnes('nom');
             foreach ($allPersonnes as $personne) {
                 $this->update($personne->id_personne, $update);
             }
@@ -101,12 +101,83 @@ class PersonneModel extends Model
     }
 
     /**
-     * Fonction qui permet de retourner toutes les personnes
+     * Fonction qui permet de retourner toutes les personnes en triant par $orderBy et dans l’ordre $order
+     * @param string $orderBy
+     * @param string $order
      * @return array
      */
-    public function getAllPersonnes(): array
+    public function getAllPersonnes(string $orderBy, string $order = 'ASC'): array
     {
-        return $this->orderBy('nom')->findAll();
+        return $this->orderBy($orderBy, $order)
+            ->orderBy('nom', 'ASC')
+            ->findAll();
+    }
+
+    /**
+     * Retourne une pagination de toutes les personnes avec leur séjour, mail et statut
+     * @param string $orderBy est l’élément sur lequel il est ordonné
+     * @param string $order est le sens de l’ordre
+     * @param int $parPage est le nombre d’éléments affiché sur une seule même page
+     * @return array
+     */
+    public function getAllPersonnesPagination(string $orderBy = 'role', string $order = 'ASC', int $parPage = 10): array
+    {
+        return $this->join('sejour', 'personne.id_personne = sejour.id_personne', 'inner')
+            ->orderBy($orderBy, $order)
+            ->join('mail', 'personne.id_personne = mail.id_personne', 'inner')
+            ->join('statut', 'personne.statut=statut.id_statut', 'inner')
+            ->paginate($parPage);
+    }
+
+    public function getPersonneByRolePagination(string $role = "normal", string $orderBy = 'role', string $order = 'ASC', int $parPage = 10): ?array
+    {
+        return $this->where('role', $role)
+            ->join('sejour', 'personne.id_personne = sejour.id_personne', 'inner')
+            ->orderBy($orderBy, $order)
+            ->join('mail', 'personne.id_personne = mail.id_personne', 'inner')
+            ->join('statut', 'personne.statut=statut.id_statut', 'inner')
+            ->paginate($parPage);
+    }
+
+    /**
+     * Retourne la recherche de personne à partir de la $query
+     * @param string $query
+     * @param string $role
+     * @param int $parPage
+     * @return array|null
+     */
+    public function searchPagination(string $query = "", string $role = "all", int $parPage = 10): ?array
+    {
+        $this->join('sejour', 'personne.id_personne = sejour.id_personne', 'inner')
+            ->join('mail', 'personne.id_personne = mail.id_personne', 'inner')
+            ->join('statut', 'personne.statut=statut.id_statut', 'inner')
+            ->orderBy('nom', 'ASC');
+
+        if (!empty($query)) {
+            $queryString = explode(" ", $query);
+            $this->groupStart();
+            foreach ($queryString as $char) {
+                $this->like('nom', $char)
+                    ->orlike('prenom', $char);
+            }
+            $this->groupEnd();
+        }
+
+        switch ($role):
+            case 'all':
+                break;
+            case 'admin':
+                $this->where('role', 'admin');
+                break;
+            case 'modo':
+                $this->where('role', 'modo');
+                break;
+            case 'normal':
+                $this->where('role', 'normal');
+                break;
+        endswitch;
+
+        return $this->paginate($parPage);
     }
 
     /**
@@ -127,7 +198,7 @@ class PersonneModel extends Model
      */
     public function deleteAll()
     {
-        $personnes = $this->getAllPersonnes();
+        $personnes = $this->getAllPersonnes('nom');
         foreach ($personnes as $personne) {
             $this->deletePersonne($personne->id_personne);
         }

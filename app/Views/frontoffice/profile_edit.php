@@ -163,7 +163,7 @@ $img_url = img_url('');
                             } else if (!empty($statutPersonne)) {
                                 echo $statut->id_statut === $statutPersonne->id_statut ? 'selected' : '';
                             } ?> value="<?= $statut->id_statut ?>">
-                                <?= $statut->nom ?>
+                                <?= $statut->statut ?>
                             </option>
                         <?php }
                     } ?>
@@ -218,7 +218,7 @@ $img_url = img_url('');
                     } ?>
                 </select>
             </div>
-            <?php if (isset($sejourPersonne) && isset($statutPersonne) && ($statutPersonne->nom === "Stagiaire" || $statutPersonne->nom === "Doctorant")) { ?>
+            <?php if (isset($sejourPersonne) && isset($statutPersonne) && ($statutPersonne->statut === "Stagiaire" || $statutPersonne->statut === "Doctorant")) { ?>
                 <div class="col-12">
                     <label for="inputActivite" class="form-label text-light w-100">Activités
                         <?php if (isset($activiteModif)) { ?>

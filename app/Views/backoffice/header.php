@@ -12,19 +12,31 @@ if (isset($activePage)): ?>
                 <div class="navbar-nav mx-auto">
                     <a class="nav-link d-flex mx-3 <?= $activePage === 'dashboard' ? 'active' : '' ?>"
                        href="<?= $base_url . 'backoffice/dashboard' ?>">
-                        <img class="my-auto mx-2" src="<?= $img_url . 'backoffice/header/home.svg' ?>" alt="accueil"
+                        <img class="my-auto mx-2"
+                             src="<?= $activePage === 'dashboard' ?
+                                 $img_url . 'backoffice/header/home-selected.svg' :
+                                 $img_url . 'backoffice/header/home.svg' ?>"
+                             alt="accueil"
                              width="20px">
                         Dashboard
                     </a>
                     <a class="nav-link d-flex mx-3 <?= $activePage === 'users' ? 'active' : '' ?>"
                        href="<?= $base_url . 'backoffice/users' ?>">
-                        <img class="my-auto mx-2" src="<?= $img_url . 'backoffice/header/user.svg' ?>" alt="accueil"
+                        <img class="my-auto mx-2"
+                             src="<?= $activePage === 'users' ?
+                                 $img_url . 'backoffice/header/users-selected.svg' :
+                                 $img_url . 'backoffice/header/users.svg' ?>"
+                             alt="utilisateurs"
                              width="20px">
                         Utilisateurs
                     </a>
                     <a class="nav-link d-flex mx-3 <?= $activePage === 'moderation' ? 'active' : '' ?>"
                        href="<?= $base_url . 'backoffice/moderation' ?>">
-                        <img class="my-auto mx-2" src="<?= $img_url . 'backoffice/header/mod.svg' ?>" alt="accueil"
+                        <img class="my-auto mx-2"
+                             src="<?= $activePage === 'moderation' ?
+                                 $img_url . 'backoffice/header/moderation-selected.svg' :
+                                 $img_url . 'backoffice/header/moderation.svg' ?>"
+                             alt="accueil"
                              width="20px">
                         Modération
                     </a>

@@ -104,7 +104,7 @@ class Home extends BaseController
      */
     public function getPersonnes(): array
     {
-        return $this->personneModel->getAllPersonnes();
+         return $this->personneModel->getAllPersonnes('nom');
     }
 
     /**
@@ -342,7 +342,7 @@ class Home extends BaseController
                     $this->statutModel->deleteStatut($statutDB->id_statut);
                 } else {
                     $update = [
-                        'nom' => $statusAPI[$statutKey]['statut']
+                        'statut' => $statusAPI[$statutKey]['statut']
                     ];
                     $this->statutModel->updateStatut($statutDB->id_statut, $update);
                 }
@@ -352,7 +352,7 @@ class Home extends BaseController
                 $id_statut = $statut['id_statut'];
                 $insert = [
                     'id_statut' => $id_statut,
-                    'nom' => $statut['statut']
+                    'statut' => $statut['statut']
                 ];
                 if (!$this->statutModel->getStatut($id_statut)) {
                     $this->statutModel->insertStatut($insert);
@@ -456,7 +456,7 @@ class Home extends BaseController
              */
             $this->personneModel->deleteAll();
         } else {
-            $personnesBD = $this->personneModel->getAllPersonnes();
+            $personnesBD = $this->personneModel->getAllPersonnes('nom');
 
             foreach ($personnesBD as $personne) {
                 $personneKey = array_search($personne->id_personne,
@@ -518,7 +518,7 @@ class Home extends BaseController
             ];
             $this->personneModel->updateAll($update);
         } else {
-            $result = $this->personneModel->getAllPersonnes();
+            $result = $this->personneModel->getAllPersonnes('nom');
 
             foreach ($result as $localisationsBDD) {
                 $localisationKey = in_array($localisationsBDD->id_personne,

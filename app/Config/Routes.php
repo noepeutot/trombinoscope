@@ -25,7 +25,13 @@ $routes->match(['GET'], 'profile/edit/delete', [Profile::class, 'deletePhoto']);
 $routes->get('updateDB', [Home::class, 'updateDB']);
 
 $routes->get('backoffice/dashboard', [DashboardAdmin::class, 'index']);
-$routes->get('backoffice/users', [UsersAdmin::class, 'index']);
+
+$routes->match(['GET', 'POST'],'backoffice/users', [UsersAdmin::class, 'index']);
+$routes->match(['GET', 'POST'],'backoffice/users/admin', [UsersAdmin::class, 'index']);
+$routes->match(['GET', 'POST'],'backoffice/users/modo', [UsersAdmin::class, 'index']);
+$routes->match(['GET', 'POST'],'backoffice/users/normal', [UsersAdmin::class, 'index']);
+$routes->match(['GET', 'POST'],'backoffice/users/changer-role', [UsersAdmin::class, 'index']);
+
 $routes->get('backoffice/moderation', [ModerationAdmin::class, 'index']);
 
 $routes->match(['GET', 'POST'], 'login', [Login::class, 'index']);
