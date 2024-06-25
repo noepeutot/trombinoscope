@@ -124,7 +124,7 @@ class SejourModel extends Model
      */
     protected function getFormatedDate(array $data): array
     {
-        if(isset($data['data']->date_debut) && isset($data['data']->date_fin)) {
+        if (isset($data['data']->date_debut) && isset($data['data']->date_fin)) {
             $data['data']->date_debut = Time::createFromFormat('Y-m-d', $data['data']->date_debut)->format('d/m/Y');
             $data['data']->date_fin = Time::createFromFormat('Y-m-d', $data['data']->date_fin)->format('d/m/Y');
         }

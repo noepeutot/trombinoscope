@@ -54,6 +54,16 @@ class ModificationModel extends Model
     }
 
     /**
+     * Fonction qui supprimer une modification
+     * @param $id_modification
+     * @return bool|BaseResult
+     */
+    public function deleteModification($id_modification)
+    {
+        return $this->where('id_modification', $id_modification)->delete();
+    }
+
+    /**
      * Fonction qui retourne un certain nombre des dernières modifications
      * @param int $nombreLimite
      * @return array|null|object
@@ -66,13 +76,51 @@ class ModificationModel extends Model
     }
 
     /**
-     * Fonction qui supprimer une modification
-     * @param $id_modification
-     * @return bool|BaseResult
+     * Fonction qui retourne un certain nombre des dernières modifications en attente
+     * @param int $nombreLimite
+     * @return array|null|object
      */
-    public function deleteModification($id_modification)
+    public function getModificationEnAttenteRecente(int $nombreLimite)
     {
-        return $this->where('id_modification', $id_modification)->delete();
+        $this->where('statut', 'attente')
+            ->orderBy('id_modification', 'DESC');
+        if ($nombreLimite != -1) {
+            $this->limit($nombreLimite);
+        }
+        return $this->find();
+    }
+
+    /**
+     * Fonction qui retourne le nombre de modifications en attente
+     * @return int|string
+     */
+    public function countModificationEnAttente()
+    {
+        return $this->where('statut', 'attente')
+            ->countAllResults();
+    }
+
+    /**
+     * Fonction qui retourne le nombre de modifications déjà validées ou refusées
+     * @return int|string
+     */
+    public function countModificationHistorique()
+    {
+        return $this->whereNotIn('statut', ['attente'])
+            ->countAllResults();
+    }
+
+    /**
+     * Fonction qui retourne un certain nombre des dernières modifications déjà validées ou refusées
+     * @param int $nombreLimite
+     * @return array|null|object
+     */
+    public function getModificationHistoriqueRecente(int $nombreLimite)
+    {
+        return $this->whereNotIn('statut', ['attente'])
+            ->orderBy('id_modification', 'DESC')
+            ->limit($nombreLimite)
+            ->find();
     }
 
     /**
@@ -93,11 +141,11 @@ class ModificationModel extends Model
     /**
      * Fonction qui permet de retourner une modification à partir de son id
      * @param int $id_modification
-     * @return array
+     * @return array|object|null
      */
-    public function getModification(int $id_modification): array
+    public function getModification(int $id_modification)
     {
-        return $this->where('id_modification', $id_modification)->find();
+        return $this->where('id_modification', $id_modification)->first();
     }
 
     /**

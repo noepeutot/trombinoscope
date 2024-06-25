@@ -76,8 +76,8 @@ class DashboardAdmin extends BaseController
                     $numeroBureauApres = intval($modification->apres);
                     $bureauApres = $this->bureauModel->getBureau($numeroBureauApres);
 
-                    $data['bureauAvant'] = $bureauAvant;
-                    $data['bureauApres'] = $bureauApres;
+                    $modification->bureauAvant = $bureauApres;
+                    $modification->bureauApres = $bureauAvant;
                 } elseif ($modification->attribut === "Statut") {
                     $IDstatutAvant = intval($modification->avant);
                     $statutAvant = $this->statutModel->getStatut($IDstatutAvant);
@@ -85,10 +85,8 @@ class DashboardAdmin extends BaseController
                     $IDstatutApres = intval($modification->apres);
                     $statutApres = $this->statutModel->getStatut($IDstatutApres);
 
-                    $data['statutAvant'] = $statutAvant;
-                    $data['statutApres'] = $statutApres;
-                } elseif ($modification->attribut === "Photo") {
-
+                    $modification->statutAvant = $statutAvant;
+                    $modification->statutApres = $statutApres;
                 } elseif ($modification->attribut === "Equipe") {
                     $equipesAvant = [];
                     $equipesID = explode(', ', $modification->avant);
@@ -102,8 +100,8 @@ class DashboardAdmin extends BaseController
                         $equipesApres[] = $this->equipeModel->getEquipe(intval($equipeID));
                     }
 
-                    $data['equipeAvant'] = $equipesAvant;
-                    $data['equipeApres'] = $equipesApres;
+                    $modification->equipeAvant = $equipesAvant;
+                    $modification->equipeApres = $equipesApres;
                 } elseif ($modification->attribut === "Employeur") {
                     $employeurAvant = [];
                     $employeursID = explode(', ', $modification->avant);
@@ -117,8 +115,8 @@ class DashboardAdmin extends BaseController
                         $employeurApres[] = $this->employeurModel->getEmployeur(intval($employeurID));
                     }
 
-                    $data['employeurAvant'] = $employeurAvant;
-                    $data['employeurApres'] = $employeurApres;
+                    $modification->employeurAvant = $employeurAvant;
+                    $modification->employeurApres = $employeurApres;
                 }
             }
         }

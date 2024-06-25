@@ -71,6 +71,22 @@ class MailModel extends Model
     }
 
     /**
+     * FOnction qui met à jour le mail d’une personne
+     * @param int $id_personne
+     * @param $data
+     * @return bool
+     */
+    public function updateMailPersonne(int $id_personne, $data): bool
+    {
+        try {
+            return $this->where('id_personne', $id_personne)
+                ->update($data);
+        } catch (ReflectionException $exception) {
+            return $exception->getMessage();
+        }
+    }
+
+    /**
      * Fonction qui permet de retourner un mail à partir de son id
      * @param int $id_mail
      * @return array

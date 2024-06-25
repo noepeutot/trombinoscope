@@ -59,8 +59,11 @@ class FinancementModel extends Model
 
     /**
      * Fonction qui met à jour un financement
+     * @param int $id_financement
+     * @param array $data
+     * @return bool|string
      */
-    public function updateFinancement(int $id_financement, array $data): bool
+    public function updateFinancement(int $id_financement, array $data)
     {
         try {
             return $this->update($id_financement, $data);
@@ -77,6 +80,22 @@ class FinancementModel extends Model
     public function getFinancement(int $id_financement): array
     {
         return $this->where('id_financement', $id_financement)->find();
+    }
+
+    /**
+     *
+     * @param int $id_sejour
+     * @param $data
+     * @return bool|string
+     */
+    public function updateFinancementSejour(int $id_sejour, $data)
+    {
+        try {
+            return $this->where('id_sejour', $id_sejour)
+                ->update($data);
+        } catch (ReflectionException $exception) {
+            return $exception->getMessage();
+        }
     }
 
     /**

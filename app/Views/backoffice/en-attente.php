@@ -1,6 +1,7 @@
 <?php $cssUrl = css_url('');
 $jsUrl = js_url('');
 $imgUrl = img_url('');
+$baseUrl = base_url('backoffice/moderation');
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -8,6 +9,7 @@ $imgUrl = img_url('');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Trombinoscope</title>
+    <link href="<?= $cssUrl . 'attente.css' ?>" rel="stylesheet">
     <link href="<?= $cssUrl . 'bootstrap.min.v5.3.3.css' ?>" rel="stylesheet">
     <link href="<?= $cssUrl . 'dashboard.css' ?>" rel="stylesheet">
     <script src="<?= $jsUrl . 'popper.v2.11.8.js' ?>"></script>
@@ -17,55 +19,28 @@ $imgUrl = img_url('');
 <body>
 <?= $this->include('backoffice/header') ?>
 <main class="m-4 mt-2">
+    <a id="back" type="button" class="btn btn-light border px-4 my-2"
+       href="<?= $baseUrl?>">
+        <img class="me-2" src="<?= img_url('back_arrow.svg') ?>" alt="retour" width="20px">
+        <span>Retour</span>
+    </a>
     <h1 class="h1 d-flex align-items-center">
         <img src="<?= $imgUrl . 'backoffice/star.svg' ?>" alt="étoile">
-        Tableau de bord
+        Modération - En Attente
     </h1>
     <p class="p">
-        Vous pouvez visualiser les derniers utilisateurs ainsi que les dernières modifications qui ont été faites.
+        Vous pouvez gérer les modifications faites sur les profils qui sont en attente de validation.
     </p>
     <section class="border rounded p-2 mb-4">
-        <h4 class="h4">Utilisateurs ajoutés récemment</h4>
-        <?php if (isset($personneRecente)): ?>
-            <table class="table">
-                <tbody>
-                <?php foreach ($personneRecente as $personne): ?>
-                    <tr class="">
-                        <td>
-                            <img class="col-sm picture-user rounded-circle" alt="photo" width="30px"
-                                 src="<?= $imgUrl . 'profile/valide/' . $personne->id_personne ?>">
-                        </td>
-                        <td>
-                            <span class="col-sm-auto"><?= $personne->nom . ' ' . $personne->prenom ?></span>
-                        </td>
-                        <td>
-                            <span class="col-sm-auto"><?= $personne->libelle ?></span>
-                        </td>
-                        <td>
-                            <span class="col-sm-auto"><?= $personne->date_debut ?></span>
-                        </td>
-                        <td>
-                            <span class="col-sm-auto"><?= $personne->date_fin ?></span>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php else: ?>
-            <p class="m-3">Aucune personne n’a été ajouté récemment…</p>
-        <?php endif; ?>
-    </section>
-    <section class="border rounded p-2 mb-4">
-        <h4 class="h4">Dernières modifications</h4>
-        <?php if (isset($modificationRecente)): ?>
-            <div class="row d-flex flex-wrap justify-content-evenly m-2 gap-2">
-                <?php foreach ($modificationRecente as $modification): ?>
-                    <article class="col-sm card shadow px-0">
+        <h4 class="h4">En Attente
+            (<?= $nombreEnAttente ?? 0 ?>)
+        </h4>
+        <?php if (isset($modificationEnAttente)): ?>
+            <div class="d-flex flex-wrap justify-content-evenly m-2 gap-2">
+                <?php foreach ($modificationEnAttente as $modification): ?>
+                    <article class="card shadow px-0">
                         <div class="card-header hstack gap-3">
                         <span class="fs-6">
-<!--                            <img class="picture rounded-circle" alt="photo"-->
-                            <!--                                 src="-->
-                            <?php //= $imgUrl . 'profile/valide/' . $modification->id_personne ?><!--">-->
                             <?= $modification->nom . ' ' . $modification->prenom ?>
                         </span>
                             <span class="badge text-bg-secondary ms-auto">
@@ -78,7 +53,7 @@ $imgUrl = img_url('');
                                     <span class="fw-bold fst-italic me-2">
                                         Ancien
                                     </span>
-                                    <span>
+                                    <span class="text-center text-break text-truncate-span">
                                         <?php if ($modification->attribut === "Bureau") {
                                             echo $modification->bureauAvant->numero;
                                         } elseif ($modification->attribut === "Statut") {
@@ -86,7 +61,7 @@ $imgUrl = img_url('');
                                         } elseif ($modification->attribut === "Equipe") {
                                             $equipeAvant = $modification->equipeAvant;
                                             foreach ($equipeAvant as $equipe) {
-                                                echo $equipe->nom_court ;
+                                                echo $equipe->nom_court;
                                                 echo next($equipeAvant) ? ', ' : '';
                                             }
                                         } elseif ($modification->attribut === "Employeur") {
@@ -143,27 +118,23 @@ $imgUrl = img_url('');
                             <?php endif; ?>
                         </div>
                         <div class="card-footer text-body-secondary text-center">
-                            <?php if ($modification->statut === "attente"): ?>
-                                <span class="fw-medium bg-dark-subtle text-dark rounded px-2 d-inline-flex" disabled>
-                                      En attente
-                                      <img class="ms-1" src="<?= $imgUrl . 'backoffice/timer.svg' ?>" alt="attente">
-                                </span>
-                            <?php elseif ($modification->statut === "valide"): ?>
-                                <span class="fw-medium bg-success-subtle text-success fst-italic rounded px-2">
-                                    Validé
-                                </span>
-                            <?php else: ?>
-                                <span class="fw-medium bg-danger-subtle text-danger fst-italic rounded px-2">
-                                    Refusé
-                                </span>
-                            <?php endif; ?>
-
+                            <form method="post" action="<?= $baseUrl . '/en-attente' ?>">
+                                <button class="btn btn-danger" type="submit"
+                                        name="annule" value="<?= $modification->id_modification ?>">
+                                    <img class="" src="<?= $imgUrl . 'backoffice/cross-white.svg' ?>" alt="refuser">
+                                </button>
+                                <button class="btn btn-success" type="submit"
+                                        name="valide" value="<?= $modification->id_modification ?>">
+                                    Valider
+                                    <img class="me-1" alt="attente" src="<?= $imgUrl . 'backoffice/valid.svg' ?>">
+                                </button>
+                            </form>
                         </div>
                     </article>
                 <?php endforeach; ?>
             </div>
         <?php else: ?>
-            <p class="col m-3">Aucune personne n’a été ajouté récemment…</p>
+            <p class="col m-3">Aucune modification n’est en attente de validation…</p>
         <?php endif; ?>
     </section>
 </main>

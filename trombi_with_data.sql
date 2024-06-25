@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : ven. 14 juin 2024 à 15:28
+-- Généré le : jeu. 20 juin 2024 à 14:39
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -198,7 +198,8 @@ INSERT INTO `financement` (`id_financement`, `id_sejour`, `id_employeur`) VALUES
 (29, 29, 5),
 (30, 30, 5),
 (31, 1, 10),
-(33, 31, 1);
+(33, 31, 1),
+(35, 33, 10);
 
 -- --------------------------------------------------------
 
@@ -215,7 +216,7 @@ CREATE TABLE IF NOT EXISTS `mail` (
   PRIMARY KEY (`id_mail`),
   UNIQUE KEY `id_mail` (`id_mail`),
   KEY `id_personne` (`id_personne`)
-) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=57 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Déchargement des données de la table `mail`
@@ -250,7 +251,8 @@ INSERT INTO `mail` (`id_mail`, `libelle`, `type`, `id_personne`) VALUES
 (44, 'noe.peutot@g2elab.grenoble-inp.fr', 'Unité', 2),
 (50, 'henry.colasuonno@g2elab.grenoble-inp.fr', 'Unité', 5),
 (53, 'beatrice.Arrieula@g2elab.grenoble-inp.fr', 'Unité', 21),
-(54, 'patrick.sebastien@grenoble-inp.fr', 'Institutionnel', 32);
+(54, 'patrick.sebastien@grenoble-inp.fr', 'Institutionnel', 32),
+(56, 'henry.pierre@g2elab.grenoble-inp.fr', 'Institutionnel', 33);
 
 -- --------------------------------------------------------
 
@@ -269,7 +271,7 @@ CREATE TABLE IF NOT EXISTS `modification` (
   `commentaire` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
   PRIMARY KEY (`id_modification`),
   KEY `id_personne` (`id_personne`)
-) ENGINE=InnoDB AUTO_INCREMENT=106 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Déchargement des données de la table `modification`
@@ -309,7 +311,7 @@ CREATE TABLE IF NOT EXISTS `personne` (
 --
 
 INSERT INTO `personne` (`id_personne`, `login`, `role`, `nom`, `prenom`, `telephone`, `statut`, `bureau`) VALUES
-(1, 'danguilv', 'normal', 'DANGUILLAUME', 'Vincent', '0123456789', 5, 1),
+(1, 'danguilv', 'modo', 'DANGUILLAUME', 'Vincent', '0123456789', 5, 1),
 (2, 'peutotn', 'admin', 'PEUTOT', 'Noé', '0987654321', 33, 2),
 (3, NULL, 'normal', 'LEROUX', 'Rachelle', NULL, 4, NULL),
 (4, NULL, 'normal', 'RATTÉ', 'Marcelle', NULL, 30, NULL),
@@ -338,7 +340,8 @@ INSERT INTO `personne` (`id_personne`, `login`, `role`, `nom`, `prenom`, `teleph
 (27, NULL, 'normal', 'NORRIS', 'William', NULL, 4, NULL),
 (28, NULL, 'normal', 'LOUBET', 'Sabrine', NULL, 7, NULL),
 (29, NULL, 'normal', 'DEBRIEUX', 'Marie', NULL, 7, NULL),
-(32, NULL, 'normal', 'PATRICK', 'Sebastien', NULL, 20, NULL);
+(32, NULL, 'normal', 'PATRICK', 'Sebastien', NULL, 20, NULL),
+(33, NULL, 'normal', 'HENRY', 'Pierre', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -390,7 +393,8 @@ INSERT INTO `rattachement` (`id_rattachement`, `id_sejour`, `id_equipe`) VALUES
 (27, 27, 6),
 (29, 29, 10),
 (30, 30, 10),
-(31, 31, 10);
+(31, 31, 10),
+(36, 33, 2);
 
 -- --------------------------------------------------------
 
@@ -432,7 +436,7 @@ CREATE TABLE IF NOT EXISTS `sejour` (
   PRIMARY KEY (`id_sejour`),
   UNIQUE KEY `id_sejour` (`id_sejour`),
   KEY `id_personne` (`id_personne`)
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Déchargement des données de la table `sejour`
@@ -468,7 +472,8 @@ INSERT INTO `sejour` (`id_sejour`, `date_debut`, `date_fin`, `id_personne`, `suj
 (27, '2010-01-01', '2100-01-01', 27, NULL),
 (29, '2010-01-01', '2100-01-01', 28, NULL),
 (30, '2010-01-01', '2100-01-01', 29, NULL),
-(31, '2010-01-01', '2025-01-01', 32, NULL);
+(31, '2010-01-01', '2025-01-01', 32, NULL),
+(33, '2024-01-20', '2100-01-01', 33, NULL);
 
 -- --------------------------------------------------------
 
@@ -479,16 +484,16 @@ INSERT INTO `sejour` (`id_sejour`, `date_debut`, `date_fin`, `id_personne`, `suj
 DROP TABLE IF EXISTS `statut`;
 CREATE TABLE IF NOT EXISTS `statut` (
   `id_statut` int NOT NULL,
-  `nom` varchar(255) NOT NULL,
+  `statut` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   PRIMARY KEY (`id_statut`),
-  KEY `nom` (`nom`(250))
+  KEY `nom` (`statut`(250))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Déchargement des données de la table `statut`
 --
 
-INSERT INTO `statut` (`id_statut`, `nom`) VALUES
+INSERT INTO `statut` (`id_statut`, `statut`) VALUES
 (1, 'Enseignant-Chercheur Titulaire'),
 (2, 'Enseignant-Chercheur CDI'),
 (3, 'Chercheur Titulaire'),
@@ -588,31 +593,6 @@ ALTER TABLE `modification`
 ALTER TABLE `personne`
   ADD CONSTRAINT `cle_etrangere_bureau` FOREIGN KEY (`bureau`) REFERENCES `bureau` (`id_bureau`) ON DELETE SET NULL ON UPDATE SET NULL,
   ADD CONSTRAINT `cle_etrangere_statut` FOREIGN KEY (`statut`) REFERENCES `statut` (`id_statut`) ON DELETE SET NULL ON UPDATE SET NULL;
-
---
--- Contraintes pour la table `rattachement`
---
-ALTER TABLE `rattachement`
-  ADD CONSTRAINT `cle_etrangere_id_equipe` FOREIGN KEY (`id_equipe`) REFERENCES `equipe` (`id_equipe`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `cle_etrangere_id_sejour` FOREIGN KEY (`id_sejour`) REFERENCES `sejour` (`id_sejour`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Contraintes pour la table `responsabilite`
---
-ALTER TABLE `responsabilite`
-  ADD CONSTRAINT `responsabilite_cle_etrangere` FOREIGN KEY (`id_personne`) REFERENCES `personne` (`id_personne`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Contraintes pour la table `sejour`
---
-ALTER TABLE `sejour`
-  ADD CONSTRAINT `sejour_clé_etrangere` FOREIGN KEY (`id_personne`) REFERENCES `personne` (`id_personne`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Contraintes pour la table `utilisateur`
---
-ALTER TABLE `utilisateur`
-  ADD CONSTRAINT `cle_etrangere_id_personne` FOREIGN KEY (`id_personne`) REFERENCES `personne` (`id_personne`) ON DELETE SET NULL ON UPDATE SET NULL;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

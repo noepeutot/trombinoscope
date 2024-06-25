@@ -33,6 +33,8 @@ $routes->match(['GET', 'POST'],'backoffice/users/normal', [UsersAdmin::class, 'i
 $routes->match(['GET', 'POST'],'backoffice/users/changer-role', [UsersAdmin::class, 'index']);
 
 $routes->get('backoffice/moderation', [ModerationAdmin::class, 'index']);
+$routes->match(['GET', 'POST'], 'backoffice/moderation/en-attente', [ModerationAdmin::class, 'index']);
+$routes->match(['GET', 'POST'], 'backoffice/moderation/historique', [ModerationAdmin::class, 'index']);
 
 $routes->match(['GET', 'POST'], 'login', [Login::class, 'index']);
 $routes->get('logout', [Login::class, 'logout']);
