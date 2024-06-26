@@ -135,7 +135,7 @@ $baseUrl = base_url('backoffice/moderation');
             (<?= $nombreHistorique ?? 0 ?>)
         </h4>
         <a class="d-inline-flex flex-row flex-nowrap align-middle btn btn-light border position-absolute top-0 end-0 translate-middle"
-           href="<?= $baseUrl . '/en-attente' ?>">
+           href="<?= $baseUrl . '/historique' ?>">
             Voir plus
             <img class="ms-2" alt="voir plus" src="<?= $imgUrl . 'backoffice/go-arrow.svg' ?>">
         </a>

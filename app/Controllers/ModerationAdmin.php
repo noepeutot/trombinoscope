@@ -58,6 +58,9 @@ class ModerationAdmin extends BaseController
 
                     case 'backoffice/moderation/en-attente':
                         return $this->attente();
+
+                    case 'backoffice/moderation/historique':
+                        return $this->historique();
                 }
             }
         }
@@ -87,94 +90,15 @@ class ModerationAdmin extends BaseController
         return view('backoffice/moderation', $data);
     }
 
-    public function attente(): string
+    public function processModifications($modifications)
     {
-        $data = [];
-
-        if($this->request->getPost()) {
-            if($this->request->getPost('annule')){
-                $id_modification = $this->request->getPost('annule');
-                $modification = $this->modificationModel->getModification($id_modification);
-                if($modification) {
-                    $this->modificationModel->updateModification($id_modification, ['statut' => 'annule']);
-                }
-            } elseif ($this->request->getPost('valide')) {
-                $id_modification = $this->request->getPost('valide');
-                $modification = $this->modificationModel->getModification($id_modification);
-                if($modification) {
-                    $attribut = $modification->attribut;
-                    switch ($attribut){
-                        case 'Nom':
-                            $update = ['nom' => $modification->apres];
-                            $this->personneModel->updatePersonne($modification->id_personne, $update);
-                            break;
-                        case 'Prénom':
-                            $update = ['prenom' => $modification->apres];
-                            $this->personneModel->updatePersonne($modification->id_personne, $update);
-                            break;
-                        case 'Téléphone':
-                            $update = ['telephone' => $modification->apres];
-                            $this->personneModel->updatePersonne($modification->id_personne, $update);
-                            break;
-                        case 'Bureau':
-                            $update = ['bureau' => intval($modification->apres)];
-                            $this->personneModel->updatePersonne($modification->id_personne, $update);
-                            break;
-                        case 'Statut':
-                            $update = ['statut' => intval($modification->apres)];
-                            $this->personneModel->updatePersonne($modification->id_personne, $update);
-                            break;
-                        case 'Mail':
-                            $update = ['libelle' => $modification->apres];
-                            $this->mailModel->updateMailPersonne($modification->id_personne, $update);
-                            break;
-                        case 'Activité':
-                            $update = ['sujet' => $modification->apres];
-                            $sejour = $this->sejourModel->getSejourPersonne($modification->id_personne);
-                            if($sejour){
-                                $this->sejourModel->updateSejour($sejour->id_sejour, $update);
-                            }
-                            break;
-                        case 'Employeur':
-                            // TODO : A finir
-//                            var_dump($modification->apres);
-//                            $employeursID = explode(', ', $modification->apres);
-//                            foreach ($employeursID as $employeurID) {
-//                                $update = ['id_employeur' => intval($employeurID)];
-//                                $sejour = $this->sejourModel->getSejourPersonne($modification->id_personne);
-//                                if ($sejour) {
-//                                    $this->financementModel->updateFinancementSejour($sejour->id_sejour, $update);
-//                                }
-//                            }
-                            break;
-                        case 'Equipe':
-//                            $update = ['sujet' => $modification->apres];
-//                            $sejour = $this->sejourModel->getSejourPersonne($modification->id_personne);
-//                            if($sejour) {
-//                                $this->financementModel->updateFinancementSejour($sejour->id_sejour, $update);
-//                            }
-                            break;
-                        case 'Photo':
-                            break;
-                    }
-                    $this->modificationModel->updateModification($id_modification, ['statut' => 'valide']);
-                }
-            }
+        foreach ($modifications as $modification) {
+            $this->enrichModification($modification);
         }
-
-        $modificationEnAttente = $this->modificationModel->getModificationEnAttenteRecente(-1);
-        $nombreEnAttente = $this->modificationModel->countModificationEnAttente();
-        if (!empty($modificationEnAttente)) {
-            $this->processModifications($modificationEnAttente);
-        }
-
-        $data['modificationEnAttente'] = $modificationEnAttente;
-        $data['nombreEnAttente'] = $nombreEnAttente;
-        $data['activePage'] = 'moderation';
-        return view('backoffice/en-attente', $data);
     }
 
-    public function enrichModification($modification) {
+    public function enrichModification($modification)
+    {
         $personne = $this->personneModel->getPersonne($modification->id_personne);
         $modification->nom = $personne->nom;
         $modification->prenom = $personne->prenom;
@@ -195,21 +119,24 @@ class ModerationAdmin extends BaseController
         }
     }
 
-    private function enrichBureau($modification) {
+    private function enrichBureau($modification)
+    {
         $bureauAvant = $this->bureauModel->getBureau(intval($modification->avant));
         $bureauApres = $this->bureauModel->getBureau(intval($modification->apres));
         $modification->bureauAvant = $bureauAvant;
         $modification->bureauApres = $bureauApres;
     }
 
-    private function enrichStatut($modification) {
+    private function enrichStatut($modification)
+    {
         $statutAvant = $this->statutModel->getStatut(intval($modification->avant));
         $statutApres = $this->statutModel->getStatut(intval($modification->apres));
         $modification->statutAvant = $statutAvant;
         $modification->statutApres = $statutApres;
     }
 
-    private function enrichEquipe($modification) {
+    private function enrichEquipe($modification)
+    {
         $equipesAvant = [];
         $equipesID = explode(', ', $modification->avant);
         foreach ($equipesID as $equipeID) {
@@ -226,7 +153,8 @@ class ModerationAdmin extends BaseController
         $modification->equipeApres = $equipesApres;
     }
 
-    private function enrichEmployeur($modification) {
+    private function enrichEmployeur($modification)
+    {
         $employeurAvant = [];
         $employeursID = explode(', ', $modification->avant);
         foreach ($employeursID as $employeurID) {
@@ -243,9 +171,87 @@ class ModerationAdmin extends BaseController
         $modification->employeurApres = $employeurApres;
     }
 
-    public function processModifications($modifications) {
-        foreach ($modifications as $modification) {
-            $this->enrichModification($modification);
+    public function attente(): string
+    {
+        $data = [];
+
+        if ($this->request->getPost()) {
+            if ($this->request->getPost('annule')) {
+                $id_modification = $this->request->getPost('annule');
+                $modification = $this->modificationModel->getModification($id_modification);
+                if ($modification) {
+                    $attribut = $modification->attribut;
+                    $personne = $this->personneModel->getPersonne($modification->id_personne);
+                    if ($personne) {
+                        $mail = $this->mailModel->getMailPersonne($personne->id_personne);
+                        $this->sendMail($mail->libelle, $attribut, $personne, 'templates/email-refuse', false);
+                        $this->modificationModel->updateModification($id_modification, ['statut' => 'annule']);
+                    }
+                }
+            } elseif ($this->request->getPost('valide')) {
+                $id_modification = $this->request->getPost('valide');
+                $modification = $this->modificationModel->getModification($id_modification);
+                if ($modification) {
+                    $attribut = $modification->attribut;
+                    $personne = $this->personneModel->getPersonne($modification->id_personne);
+                    if ($personne) {
+                        $mail = $this->mailModel->getMailPersonne($personne->id_personne);
+                        $this->sendMail($mail->libelle, $attribut, $personne, 'templates/email-valide', true);
+                        $this->modificationModel->updateModification($id_modification, ['statut' => 'valide']);
+                    }
+                }
+            }
         }
+
+        $modificationEnAttente = $this->modificationModel->getModificationEnAttenteRecente(-1);
+        $nombreEnAttente = $this->modificationModel->countModificationEnAttente();
+        if (!empty($modificationEnAttente)) {
+            $this->processModifications($modificationEnAttente);
+        }
+
+        $data['modificationEnAttente'] = $modificationEnAttente;
+        $data['nombreEnAttente'] = $nombreEnAttente;
+        $data['activePage'] = 'moderation';
+        return view('backoffice/en-attente', $data);
+    }
+
+    public function historique(): string
+    {
+        $data = [];
+
+        $modificationHistorique = $this->modificationModel->getModificationHistoriqueRecente(-1);
+        $nombreHistorique = $this->modificationModel->countModificationHistorique();
+
+        if (!empty($modificationHistorique)) {
+            $this->processModifications($modificationHistorique);
+        }
+
+        $data['modificationHistorique'] = $modificationHistorique;
+        $data['nombreHistorique'] = $nombreHistorique;
+        $data['activePage'] = 'moderation';
+        return view('backoffice/historique', $data);
+    }
+
+    /** Fonction qui envoie un mail
+     * @param string $destinataire du mail
+     * @param string $attribut qui fait l’objet de modification
+     * @param $personne qui fait la modification
+     * @param string $view template du mail
+     * @param bool $validation true si validé et false sinon
+     * @return void
+     */
+    public function sendMail(string $destinataire, string $attribut, $personne, string $view, bool $validation){
+        $email = Services::email();
+        $email->setTo($destinataire);
+        $subject = $validation ? 'Validation modification' : 'Refus modification';
+        $email->setSubject($subject);
+        $data['attribut'] = $attribut;
+        $data['nom'] = $personne->nom;
+        $data['prenom'] = $personne->prenom;
+        $template = view($view, $data);
+        $email->setMessage($template);
+        $response = $email->send();
+        $response ? log_message("error", "Email has been sent") : log_message("error", $email->printDebugger());
+
     }
 }

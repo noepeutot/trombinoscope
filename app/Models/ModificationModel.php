@@ -117,10 +117,12 @@ class ModificationModel extends Model
      */
     public function getModificationHistoriqueRecente(int $nombreLimite)
     {
-        return $this->whereNotIn('statut', ['attente'])
-            ->orderBy('id_modification', 'DESC')
-            ->limit($nombreLimite)
-            ->find();
+        $this->whereNotIn('statut', ['attente'])
+            ->orderBy('id_modification', 'DESC');
+        if ($nombreLimite != -1) {
+            $this->limit($nombreLimite);
+        }
+        return $this->find();
     }
 
     /**
