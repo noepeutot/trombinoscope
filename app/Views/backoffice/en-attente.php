@@ -35,7 +35,7 @@ $baseUrl = base_url('backoffice/moderation');
         <h4 class="h4">En Attente
             (<?= $nombreEnAttente ?? 0 ?>)
         </h4>
-        <?php if (isset($modificationEnAttente)): ?>
+        <?php if (!empty($modificationEnAttente)): ?>
             <div class="d-flex flex-wrap justify-content-evenly m-2 gap-2">
                 <?php foreach ($modificationEnAttente as $modification): ?>
                     <article class="card shadow px-0">

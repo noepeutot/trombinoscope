@@ -69,11 +69,6 @@ $uriString = uri_string();
                 <table class="table table-striped table-hover m-0">
                     <thead class="table-secondary">
                     <tr>
-                        <th scope="col">
-                            <label>
-                                <input class="form-check-input" type="checkbox">
-                            </label>
-                        </th>
                         <th scope="col">Nom</th>
                         <th scope="col">Statut</th>
                         <th scope="col">Rôle</th>
@@ -84,11 +79,6 @@ $uriString = uri_string();
                     <tbody class="table-group-divider">
                     <?php foreach ($users as $user): ?>
                         <tr>
-                            <th scope="row" class="align-middle">
-                                <label>
-                                    <input class="form-check-input" type="checkbox">
-                                </label>
-                            </th>
                             <td class="align-middle lh-1">
                                 <span class="fw-medium">
                                     <?= $user->nom . ' ' . $user->prenom ?>

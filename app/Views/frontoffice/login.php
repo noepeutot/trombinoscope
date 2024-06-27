@@ -67,12 +67,6 @@ $imgUrl = img_url('');
             </div>
         </div>
         <div class="my-4">
-            <input class="form-check-input" type="checkbox" id="remember" name="remember">
-            <label class="form-check-label text-light" for="remember">
-                Se souvenir de moi
-            </label>
-        </div>
-        <div class="my-4">
             <button type="submit" class="btn btn-light w-100">
                 Se connecter
             </button>
