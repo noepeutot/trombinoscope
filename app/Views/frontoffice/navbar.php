@@ -25,7 +25,7 @@ if (isset($personneConnectee)) { ?>
                     <span class="fw-semibold"> Mon Profile</span>
                 </a>
             </li>
-            <?php if ($personneConnectee->role === 'admin') { ?>
+            <?php if ($personneConnectee->role === 'admin' || $personneConnectee->role === 'modo') { ?>
                 <li>
                     <a class="dropdown-item d-flex align-items-center justify-content-start"
                        href="<?= $base_url . 'backoffice/dashboard' ?>">

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : jeu. 20 juin 2024 à 13:57
+-- Généré le : ven. 28 juin 2024 à 16:16
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -102,6 +102,25 @@ CREATE TABLE IF NOT EXISTS `financement` (
 -- --------------------------------------------------------
 
 --
+-- Structure de la table `localisation`
+--
+
+DROP TABLE IF EXISTS `localisation`;
+CREATE TABLE IF NOT EXISTS `localisation` (
+  `id_localisation` int NOT NULL,
+  `telephone` int DEFAULT NULL,
+  `bureau` int DEFAULT NULL,
+  `sejour` int DEFAULT NULL,
+  `personne` int DEFAULT NULL,
+  PRIMARY KEY (`id_localisation`),
+  KEY `bureau` (`bureau`),
+  KEY `sejour` (`sejour`),
+  KEY `personne` (`personne`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Structure de la table `mail`
 --
 
@@ -148,14 +167,11 @@ CREATE TABLE IF NOT EXISTS `personne` (
   `role` enum('normal','admin','modo') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `nom` varchar(255) NOT NULL,
   `prenom` varchar(255) NOT NULL,
-  `telephone` varchar(10) DEFAULT NULL,
   `statut` int DEFAULT NULL,
-  `bureau` int DEFAULT NULL,
   PRIMARY KEY (`id_personne`),
   UNIQUE KEY `id_personne` (`id_personne`),
   UNIQUE KEY `id_personne_2` (`id_personne`),
-  KEY `cle_etrangere_statut` (`statut`),
-  KEY `cle_etrangere_bureau` (`bureau`)
+  KEY `cle_etrangere_statut` (`statut`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- --------------------------------------------------------
@@ -256,6 +272,14 @@ ALTER TABLE `financement`
   ADD CONSTRAINT `financement_ibfk_2` FOREIGN KEY (`id_sejour`) REFERENCES `sejour` (`id_sejour`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Contraintes pour la table `localisation`
+--
+ALTER TABLE `localisation`
+  ADD CONSTRAINT `cle_etrangere_id_bureau` FOREIGN KEY (`bureau`) REFERENCES `bureau` (`id_bureau`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `cle_etrangere_id_personne` FOREIGN KEY (`personne`) REFERENCES `personne` (`id_personne`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `cle_etrangere_sejour` FOREIGN KEY (`sejour`) REFERENCES `sejour` (`id_sejour`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Contraintes pour la table `mail`
 --
 ALTER TABLE `mail`
@@ -271,7 +295,6 @@ ALTER TABLE `modification`
 -- Contraintes pour la table `personne`
 --
 ALTER TABLE `personne`
-  ADD CONSTRAINT `cle_etrangere_bureau` FOREIGN KEY (`bureau`) REFERENCES `bureau` (`id_bureau`) ON DELETE SET NULL ON UPDATE SET NULL,
   ADD CONSTRAINT `cle_etrangere_statut` FOREIGN KEY (`statut`) REFERENCES `statut` (`id_statut`) ON DELETE SET NULL ON UPDATE SET NULL;
 COMMIT;
 

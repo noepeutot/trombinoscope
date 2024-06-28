@@ -34,13 +34,18 @@ $imgUrl = img_url('');
             <h2><?= $personne->nom . ' ' . $personne->prenom ?></h2>
 
             <?php if (isset($mails)) { ?>
-                <p class="mb-0"><?= $mails->libelle ?></p>
+                <a href="mailto:<?= $mails->libelle ?>" class="link-offset-2 link-offset-1-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover mb-0"><?= $mails->libelle ?></a>
             <?php } else { ?>
                 <p class="fst-italic mb-0"><?= "Aucun email professionnel" ?></p>
             <?php } ?>
 
-            <?php if (isset($personne->telephone)) { ?>
-                <p class="mb-0"><?= $personne->telephone ?></p>
+            <?php if (isset($localisations)) {?>
+                <div class="">
+                <?php foreach ($localisations as $localisation) { ?>
+                    <a href="tel:<?= $localisation->telephone ?>" class="link-offset-2 link-offset-1-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover mb-0"><?= $localisation->telephone ?></a>
+                    <?= next($bureaux) ? ', ' : ''; ?>
+                <?php } ?>
+                </div>
             <?php } else { ?>
                 <p class="fst-italic mb-0"><?= "Aucun téléphone professionnel" ?></p>
             <?php } ?>
@@ -82,10 +87,14 @@ $imgUrl = img_url('');
                     </p>
                 </div>
             <?php } ?>
-            <?php if (isset($bureau)) { ?>
+            <?php if (isset($bureaux)) { ?>
                 <div class="col-4 my-2">
                     <p class="fw-light mb-1">Bureau</p>
-                    <p class="fw-bold mb-0"><?= $bureau->numero ?></p>
+                    <p class="fw-bold mb-0">
+                        <?php foreach ($bureaux as $bureau) { ?>
+                            <span><?= $bureau->numero ?></span>
+                            <?= next($bureaux) ? ', ' : ''; ?>
+                        <?php } ?></p>
                 </div>
             <?php } ?>
             <?php if (!empty($employeurs)) { ?>
@@ -105,7 +114,7 @@ $imgUrl = img_url('');
                     <p class="fw-bold mb-0">
                         <?php foreach ($responsables as $encadre) {
                             if (isset($encadre->id_personne)) { ?>
-                                <a class="link-offset-1"
+                                <a class="link-offset-2 link-offset-1-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
                                    href="<?= $encadre->id_personne ?>"><?= $encadre->nom . ' ' . $encadre->prenom ?></a>
                             <?php } else { ?>
                                 <span><?= $encadre->nom . ' ' . $encadre->prenom ?></span>
@@ -117,11 +126,11 @@ $imgUrl = img_url('');
             <?php } ?>
             <?php if (!empty($encadres)) { ?>
                 <div class="col-4 my-2">
-                    <p class="fw-light mb-0">Co-Encadrement de recherche</p>
+                    <p class="fw-light mb-0">Encadrement</p>
                     <p class="fw-bold mb-0">
                         <?php foreach ($encadres as $encadre) {
                             if (isset($encadre->id_personne)) { ?>
-                                <a class="link-offset-1"
+                                <a class="link-offset-2 link-offset-1-hover link-underline link-underline-opacity-0 link-underline-opacity-75-hover"
                                    href="<?= $encadre->id_personne ?>"><?= $encadre->nom . ' ' . $encadre->prenom ?></a>
                             <?php } else { ?>
                                 <span><?= $encadre->nom . ' ' . $encadre->prenom ?></span>
@@ -137,7 +146,7 @@ $imgUrl = img_url('');
                     <p class="fw-bold mb-0"><?= $sejour->date_debut ?></p>
                 </div>
             <?php } ?>
-            <?php if (isset($sejour->date_fin)) { ?>
+            <?php if (isset($sejour->date_fin) && $sejour->date_fin != "01/01/2100") { ?>
                 <div class="col-4 my-2">
                     <p class="fw-light mb-1">Date de départ</p>
                     <p class="fw-bold mb-0"><?= $sejour->date_fin ?></p>

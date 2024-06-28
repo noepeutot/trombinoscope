@@ -80,7 +80,11 @@ $imgUrl = img_url('');
                                     </span>
                                     <span>
                                         <?php if ($modification->attribut === "Bureau") {
-                                            echo $modification->bureauAvant->numero;
+                                            $bureauxAvant =  $modification->bureauxAvant;
+                                            foreach ($bureauxAvant as $bureauAvant) {
+                                                echo $bureauAvant->numero;
+                                                echo next($bureauxAvant) ? ', ' : '';
+                                            }
                                         } elseif ($modification->attribut === "Statut") {
                                             echo $modification->statutAvant->statut;
                                         } elseif ($modification->attribut === "Equipe") {
@@ -94,6 +98,12 @@ $imgUrl = img_url('');
                                             foreach ($employeurAvant as $employeur) {
                                                 echo $employeur->nom;
                                                 echo next($employeurAvant) ? ', ' : '';
+                                            }
+                                        } elseif ($modification->attribut === "Téléphone") {
+                                            $telephonesAvant = $modification->telephoneAvant;
+                                            foreach ($telephonesAvant as $telephoneAvant) {
+                                                echo $telephoneAvant;
+                                                echo next($telephonesAvant) ? ', ' : '';
                                             }
                                         } else {
                                             echo $modification->avant;
@@ -109,7 +119,11 @@ $imgUrl = img_url('');
                                     </span>
                                     <span class="text-center text-break text-truncate-span">
                                         <?php if ($modification->attribut === "Bureau") {
-                                            echo $modification->bureauApres->numero;
+                                            $bureauxApres =  $modification->bureauxApres;
+                                            foreach ($bureauxApres as $bureauApres) {
+                                                echo $bureauApres->numero;
+                                                echo next($bureauxApres) ? ', ' : '';
+                                            }
                                         } elseif ($modification->attribut === "Statut") {
                                             echo $modification->statutApres->statut;
                                         } elseif ($modification->attribut === "Equipe") {
@@ -123,6 +137,12 @@ $imgUrl = img_url('');
                                             foreach ($employeurApres as $employeur) {
                                                 echo $employeur->nom;
                                                 echo next($employeurApres) ? ', ' : '';
+                                            }
+                                        } elseif ($modification->attribut === "Téléphone") {
+                                            $telephonesApres = $modification->telephoneApres;
+                                            foreach ($telephonesApres as $telephoneApres) {
+                                                echo $telephoneApres;
+                                                echo next($telephonesApres) ? ', ' : '';
                                             }
                                         } else {
                                             echo $modification->apres;

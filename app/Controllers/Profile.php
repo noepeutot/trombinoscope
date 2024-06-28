@@ -8,6 +8,7 @@ use App\Models\EmployeurModel;
 use App\Models\EncadrantModel;
 use App\Models\EquipeModel;
 use App\Models\FinancementModel;
+use App\Models\LocalisationModel;
 use App\Models\MailModel;
 use App\Models\ModificationModel;
 use App\Models\PersonneModel;
@@ -36,6 +37,7 @@ class Profile extends BaseController
     protected BureauModel $bureauModel;
     protected EquipeModel $equipeModel;
     protected ModificationModel $modificationModel;
+    protected LocalisationModel $localisationModel;
 
     protected Session $session;
 
@@ -54,6 +56,7 @@ class Profile extends BaseController
         $this->bureauModel = new BureauModel();
         $this->equipeModel = new EquipeModel();
         $this->modificationModel = new ModificationModel();
+        $this->localisationModel = new LocalisationModel();
 
         $this->session = Services::session();
     }
@@ -99,7 +102,8 @@ class Profile extends BaseController
         $statut = $this->statutModel->getStatutPersonne($this->personneID);
         $equipes = $this->equipeModel->getEquipePersonne($this->personneID);
         $encadres = $this->personneModel->getEncadrePersonne($this->personneID);
-        $bureau = $this->bureauModel->getBureauPersonne($this->personneID);
+        $bureaux = $this->bureauModel->getBureauxPersonne($this->personneID);
+        $localisations = $this->localisationModel->getLocalisationsPersonne($this->personneID);
 
         // Ajout des entités récupérées aux données à passer à la vue
         if (!empty($personne)) {
@@ -126,8 +130,11 @@ class Profile extends BaseController
         if (!empty($encadres)) {
             $data['encadres'] = $encadres;
         }
-        if (!empty($bureau)) {
-            $data['bureau'] = $bureau;
+        if (!empty($bureaux)) {
+            $data['bureaux'] = $bureaux;
+        }
+        if (!empty($localisations)) {
+            $data['localisations'] = $localisations;
         }
         if (!empty($sejour) && !empty($personne)) {
             $data['responsables'] = $this->personneModel->getResponsablePersonne($personne->id_personne, $sejour->id_sejour);
@@ -190,8 +197,8 @@ class Profile extends BaseController
                 $statutPersonne = $this->statutModel->getStatutPersonne($this->personneID);
                 $equipePersonne = $this->equipeModel->getEquipePersonne($this->personneID);
                 $encadresPersonne = $this->personneModel->getEncadrePersonne($this->personneID);
-                $bureauPersonne = $this->bureauModel->getBureauPersonne($this->personneID);
-
+                $bureauPersonne = $this->bureauModel->getBureauxPersonne($this->personneID);
+                $localisationsPersonne = $this->localisationModel->getLocalisationsPersonne($this->personneID);
 
                 // Vérification si le formulaire a été soumis
                 if ($this->request->getGetPost()) {
@@ -412,96 +419,109 @@ class Profile extends BaseController
 
                     // Vérification si le champ 'telephone' a été soumis dans la requête
                     if ($this->request->getGetPost('telephone')) {
-                        // Récupération de la nouvelle valeur du téléphone depuis la requête
-                        $telephone = $this->request->getGetPost('telephone');
-                        // Récupération de la modification en attente pour l'attribut 'Téléphone'
+                        // Récupérer les téléphones soumis et les convertir en tableau
+                        $telephonesStr = $this->request->getGetPost('telephone');
+                        $telephonesAPRES = explode(', ', $telephonesStr);
+
+                        // Récupérer les téléphones actuels depuis la base de données
+                        $telephonesAVANT = [];
+                        foreach ($localisationsPersonne as $localisation) {
+                            if (!empty($localisation->telephone)) {
+                                $telephonesAVANT[] = $localisation->telephone;
+                            }
+                        }
+
+                        // Trier les listes de téléphones pour comparaison
+                        asort($telephonesAVANT);
+                        asort($telephonesAPRES);
+
+                        // Convertir les listes de téléphones en chaînes de caractères
+                        $listTelephoneAPRES = implode(', ', $telephonesAPRES);
+                        $listTelephoneAVANT = implode(', ', $telephonesAVANT);
+
+                        // Récupérer la modification en attente pour l'attribut 'Téléphone'
                         $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Téléphone');
 
-                        // Vérification si le téléphone a changé et s'il n'y a pas de modification en attente
-                        if ($personne->telephone !== $telephone && empty($modification)) {
-                            // Création d'un tableau de données pour insérer une nouvelle modification
+                        // Vérifier si les téléphones ont changé et s'il n'y a pas de modification en attente
+                        if ($listTelephoneAPRES !== $listTelephoneAVANT && empty($modification)) {
                             $insert = [
                                 'id_personne' => $this->personneID,
                                 'attribut' => "Téléphone",
-                                'avant' => $personne->telephone,
-                                'apres' => $telephone,
+                                'avant' => $listTelephoneAVANT,
+                                'apres' => $listTelephoneAPRES,
                                 'statut' => "attente",
                                 'commentaire' => $commentaire
                             ];
-                            // Insertion de la nouvelle modification dans la base de données
                             $result = $this->modificationModel->insertModification($insert);
-
-                            // Vérification si l'insertion a échoué
                             if (!$result) {
-                                // Ajout d'un message d'erreur dans le tableau des erreurs
                                 $data['errors'][] = ['Modification du téléphone' => "La modification du téléphone n’a pas pu aboutir. Veuillez réessayer."];
                             }
-                            // Si le téléphone a changé et qu'il y a déjà une modification en attente
-                        } else if ($personne->telephone !== $telephone && !empty($modification)) {
-                            // Mise à jour de la modification en attente avec la nouvelle valeur
+                        } else if ($listTelephoneAPRES !== $listTelephoneAVANT && !empty($modification)) {
                             $update = [
-                                'apres' => $telephone,
+                                'apres' => $listTelephoneAPRES,
                                 'commentaire' => $commentaire
                             ];
-                            // Mise à jour de la modification dans la base de données
                             $result = $this->modificationModel->updateModification($modification->id_modification, $update);
-
-                            // Vérification si la mise à jour a échoué
                             if (!$result) {
-                                // Ajout d'un message d'erreur dans le tableau des erreurs
                                 $data['errors'][] = ['Modification du téléphone' => "La modification du téléphone n’a pas pu aboutir. Veuillez réessayer."];
                             }
-                            // Si le téléphone est identique et qu'il y a une modification en attente
-                        } else if ($personne->telephone == $telephone && !empty($modification)) {
-                            // Suppression de la modification en attente
+                        } else if ($listTelephoneAPRES === $listTelephoneAVANT && !empty($modification)) {
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
                     }
 
-                    // Vérification si le champ 'bureau' a été soumis dans la requête
                     if ($this->request->getGetPost('bureau')) {
-                        // Récupération de la nouvelle valeur du bureau depuis la requête
-                        $bureau = intval($this->request->getGetPost('bureau'));
-                        // Récupération de la modification en attente pour l'attribut 'Bureau'
+                        // Récupérer les nouvelles valeurs des bureaux depuis la requête
+                        $bureauxAPRES = $this->request->getGetPost('bureau');
+                        $bureauINT = [];
+                        foreach ($bureauxAPRES as $bur) {
+                            $bureauINT[] = intval($bur);
+                        }
+                        $bureauxAPRES = $bureauINT;
+
+                        // Récupérer les valeurs actuelles des bureaux
+                        $bureauxAVANT = [];
+                        foreach ($localisationsPersonne as $localisation) {
+                            if (!empty($localisation->bureau)) {
+                                $bureauxAVANT[] = $localisation->bureau;
+                            }
+                        }
+
+                        // Trier les listes de bureaux pour comparaison
+                        asort($bureauxAVANT);
+                        asort($bureauxAPRES);
+
+                        // Convertir les listes de bureaux en chaînes de caractères
+                        $listBureauAPRES = implode(', ', $bureauxAPRES);
+
+                        // Récupérer la modification en attente pour l'attribut 'Bureau'
                         $modification = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Bureau');
 
-                        // Vérification si le bureau a changé et s'il n'y a pas de modification en attente
-                        if ($bureauPersonne->id_bureau !== $bureau && empty($modification)) {
-                            // Création d'un tableau de données pour insérer une nouvelle modification
+                        // Vérifier si les bureaux ont changé et s'il n'y a pas de modification en attente
+                        if ($bureauxAPRES != $bureauxAVANT && empty($modification)) {
+                            $listBureauAVANT = implode(', ', $bureauxAVANT);
                             $insert = [
                                 'id_personne' => $this->personneID,
                                 'attribut' => "Bureau",
-                                'avant' => $bureauPersonne->id_bureau,
-                                'apres' => $bureau,
+                                'avant' => $listBureauAVANT,
+                                'apres' => $listBureauAPRES,
                                 'statut' => "attente",
                                 'commentaire' => $commentaire
                             ];
-                            // Insertion de la nouvelle modification dans la base de données
                             $result = $this->modificationModel->insertModification($insert);
-
-                            // Vérification si l'insertion a échoué
                             if (!$result) {
-                                // Ajout d'un message d'erreur dans le tableau des erreurs
                                 $data['errors'][] = ['Modification du bureau' => "La modification du bureau n’a pas pu aboutir. Veuillez réessayer."];
                             }
-                            // Si le bureau a changé et qu'il y a déjà une modification en attente
-                        } else if ($bureauPersonne->id_bureau !== $bureau && !empty($modification)) {
-                            // Mise à jour de la modification en attente avec la nouvelle valeur
+                        } else if ($bureauxAPRES != $bureauxAVANT && !empty($modification)) {
                             $update = [
-                                'apres' => $bureau,
+                                'apres' => $listBureauAPRES,
                                 'commentaire' => $commentaire
                             ];
-                            // Mise à jour de la modification dans la base de données
                             $result = $this->modificationModel->updateModification($modification->id_modification, $update);
-
-                            // Vérification si la mise à jour a échoué
                             if (!$result) {
-                                // Ajout d'un message d'erreur dans le tableau des erreurs
                                 $data['errors'][] = ['Modification du bureau' => "La modification du bureau n’a pas pu aboutir. Veuillez réessayer."];
                             }
-                            // Si le bureau est identique et qu'il y a une modification en attente
-                        } else if ($bureauPersonne->id_bureau == $bureau && !empty($modification)) {
-                            // Suppression de la modification en attente
+                        } else if ($bureauxAPRES == $bureauxAVANT && !empty($modification)) {
                             $this->modificationModel->deleteModification($modification->id_modification);
                         }
                     }
@@ -772,6 +792,19 @@ class Profile extends BaseController
                     }
                 }
 
+                // Récupération et conversion des téléphones modifiés en attente en une liste d'entiers
+                $telephonesModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Téléphone');
+
+                // Récupération et conversion des bureaux modifiés en attente en une liste d'entiers
+                $bureauxIDModif = $this->modificationModel->getModificationAttentePersonneAttribut($this->personneID, 'Bureau');
+                $bureauxModif = [];
+                if (!empty($bureauxIDModif)) {
+                    $bureauxID = explode(', ', $bureauxIDModif->apres);
+                    foreach ($bureauxID as $bureauID) {
+                        $bureauxModif[] = intval($bureauID);
+                    }
+                }
+
                 // Ajout des informations de la personne et des modifications en attente aux données à envoyer à la vue
                 if (!empty($personne)) {
                     $data['personne'] = $personne;
@@ -779,6 +812,10 @@ class Profile extends BaseController
 
                 if (!empty($statutPersonne)) {
                     $data['statutPersonne'] = $statutPersonne;
+                }
+
+                if (!empty($localisationsPersonne)) {
+                    $data['localisationsPersonne'] = $localisationsPersonne;
                 }
 
                 if (!empty($allStatuts)) {
@@ -839,11 +876,11 @@ class Profile extends BaseController
                 }
 
                 if (!empty($telephoneModif)) {
-                    $data['telephoneModif'] = $telephoneModif;
+                    $data['telephoneModif'] = $telephonesModif;
                 }
 
                 if (!empty($bureauModif)) {
-                    $data['bureauModif'] = intval($bureauModif->apres);
+                    $data['bureauModif'] = $bureauxModif;
                 }
 
                 if (!empty($statutModif)) {

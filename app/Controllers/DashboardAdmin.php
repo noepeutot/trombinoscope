@@ -60,7 +60,10 @@ class DashboardAdmin extends BaseController
         return redirect('/');
     }
 
-    // Méthode pour afficher le tableau de bord avec les données nécessaires
+    /**
+     * Méthode pour afficher le tableau de bord avec les données nécessaires
+     * @return string
+     */
     public function dashboard(): string
     {
         $data = [];
@@ -81,71 +84,78 @@ class DashboardAdmin extends BaseController
                 // Traitement spécifique en fonction de l’attribut modifié
                 if ($modification->attribut === "Bureau") {
                     // Récupération des bureaux avant et après la modification
-                    // Convertir les ID avant et après la modification qui sont des strings en entiers
-                    $numeroBureauAvant = intval($modification->avant);
-                    $bureauAvant = $this->bureauModel->getBureau($numeroBureauAvant);
+                    $bureauxAvant = [];
+                    $bureauxID = explode(', ', $modification->avant);
+                    foreach ($bureauxID as $bureauID) {
+                        $bureauxAvant[] = $this->bureauModel->getBureau(intval($bureauID));
+                    }
 
-                    $numeroBureauApres = intval($modification->apres);
-                    $bureauApres = $this->bureauModel->getBureau($numeroBureauApres);
+                    $bureauxApres = [];
+                    $bureauxID = explode(', ', $modification->apres);
+                    foreach ($bureauxID as $bureauID) {
+                        $bureauxApres[] = $this->bureauModel->getBureau(intval($bureauID));
+                    }
 
-                    // Stockage des entités bureau d’avant et d’après de la modification
-                    $modification->bureauAvant = $bureauApres;
-                    $modification->bureauApres = $bureauAvant;
+                    $modification->bureauxAvant = $bureauxAvant;
+                    $modification->bureauxApres = $bureauxApres;
                 } elseif ($modification->attribut === "Statut") {
                     // Récupération des statuts avant et après la modification
-                    // Convertir les ID avant et après la modification qui sont des strings en entiers
                     $IDstatutAvant = intval($modification->avant);
                     $statutAvant = $this->statutModel->getStatut($IDstatutAvant);
 
                     $IDstatutApres = intval($modification->apres);
                     $statutApres = $this->statutModel->getStatut($IDstatutApres);
 
-                    // Stockage des entités statut d’avant et d’après de la modification
                     $modification->statutAvant = $statutAvant;
                     $modification->statutApres = $statutApres;
                 } elseif ($modification->attribut === "Equipe") {
-                    // Récupération des équipes avant la modification
-                    // Séparer les ID avant la modification qui sont des strings en un tableau d’ID
+                    // Récupération des équipes avant et après la modification
                     $equipesAvant = [];
                     $equipesID = explode(', ', $modification->avant);
                     foreach ($equipesID as $equipeID) {
-                        // Récupérer les entités de chaque équipe avant la modification
                         $equipesAvant[] = $this->equipeModel->getEquipe(intval($equipeID));
                     }
 
-                    // Récupération des équipes après la modification
-                    // Séparer les ID après la modification qui sont des strings en un tableau d’ID
                     $equipesApres = [];
                     $equipesID = explode(', ', $modification->apres);
                     foreach ($equipesID as $equipeID) {
                         $equipesApres[] = $this->equipeModel->getEquipe(intval($equipeID));
                     }
 
-                    // Stockage des entités équipe d’avant et d’après de la modification
                     $modification->equipeAvant = $equipesAvant;
                     $modification->equipeApres = $equipesApres;
                 } elseif ($modification->attribut === "Employeur") {
-                    // Récupération des employeurs avant la modification
-                    // Séparer les ID avant la modification qui sont des strings en un tableau d’ID
+                    // Récupération des employeurs avant et après la modification
                     $employeurAvant = [];
                     $employeursID = explode(', ', $modification->avant);
                     foreach ($employeursID as $employeurID) {
-                        // Récupérer les détails de chaque employeur avant la modification
                         $employeurAvant[] = $this->employeurModel->getEmployeur(intval($employeurID));
                     }
 
-                    // Récupération des employeurs après la modification
-                    // Séparer les ID après la modification qui sont des strings en un tableau d’ID
                     $employeurApres = [];
                     $employeursID = explode(', ', $modification->apres);
                     foreach ($employeursID as $employeurID) {
-                        // Récupérer les détails de chaque employeur après la modification
                         $employeurApres[] = $this->employeurModel->getEmployeur(intval($employeurID));
                     }
 
-                    // Stockage des entités employeur d’avant et d’après de la modification
                     $modification->employeurAvant = $employeurAvant;
                     $modification->employeurApres = $employeurApres;
+                } elseif ($modification->attribut === "Téléphone") {
+                    // Récupération des téléphones avant et après la modification
+                    $telephoneAvant = [];
+                    $telephonesID = explode(', ', $modification->avant);
+                    foreach ($telephonesID as $telephone) {
+                        $telephoneAvant[] = $telephone;
+                    }
+
+                    $telephoneApres = [];
+                    $telephonesID = explode(', ', $modification->apres);
+                    foreach ($telephonesID as $telephone) {
+                        $telephoneApres[] = $telephone;
+                    }
+
+                    $modification->telephoneAvant = $telephoneAvant;
+                    $modification->telephoneApres = $telephoneApres;
                 }
             }
         }

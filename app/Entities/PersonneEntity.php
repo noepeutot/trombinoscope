@@ -12,8 +12,6 @@ class PersonneEntity extends Entity
         'role' => 'string',
         'nom' => 'string',
         'prenom' => 'string',
-        'telephone' => 'string',
         'statut' => 'string',
-        'bureau' => 'string'
     ];
 }

@@ -8,6 +8,7 @@ use App\Models\EmployeurModel;
 use App\Models\EncadrantModel;
 use App\Models\EquipeModel;
 use App\Models\FinancementModel;
+use App\Models\LocalisationModel;
 use App\Models\MailModel;
 use App\Models\PersonneModel;
 use App\Models\RattachementModel;
@@ -39,6 +40,7 @@ class Home extends BaseController
     protected EquipeModel $equipeModel;
     protected BureauModel $bureauModel;
     protected RattachementModel $rattachementModel;
+    protected LocalisationModel $localisationModel;
     protected Session $session;
 
 
@@ -57,6 +59,7 @@ class Home extends BaseController
         $this->equipeModel = new EquipeModel();
         $this->bureauModel = new BureauModel();
         $this->rattachementModel = new RattachementModel();
+        $this->localisationModel = new LocalisationModel();
         $this->session = Services::session();
     }
 
@@ -135,21 +138,21 @@ class Home extends BaseController
     }
 
     /**
-     * Fonction qui permet de retourner les statuts en base de données
+     * Fonction qui permet de retourner les statuts en base de données où il y a des personnes dedans
      * @return array
      */
     public function getStatuts(): array
     {
-        return $this->statutModel->getAllStatuts();
+        return $this->statutModel->getStatutsNonVide();
     }
 
     /**
-     * Fonction qui permet de retourner les équipes en base de données
+     * Fonction qui permet de retourner les équipes utiles en base de données
      * @return array
      */
     public function getEquipes(): array
     {
-        return $this->equipeModel->getAllEquipes();
+        return $this->equipeModel->getEquipesFiltre();
     }
 
     /**
@@ -209,7 +212,7 @@ class Home extends BaseController
             $temp = [];
             // On parcourt les personnels pour récupérer uniquement les personnels où le dernier séjour date de moins de 3 mois.
             foreach ($allPersonnels as $personnel) {
-                if($personnel['id_sejour']!=null) {
+                if ($personnel['id_sejour'] != null) {
                     // Création d’un intervalle de 3 mois
                     $interval = new DateInterval('P3M');
 
@@ -456,6 +459,7 @@ class Home extends BaseController
      * Fonction de mise à jour de toutes les équipes en base de données
      * @param $equipesAPI
      * @return void
+     * @throws Exception
      */
     public function updateEquipeDB($equipesAPI)
     {
@@ -465,41 +469,68 @@ class Home extends BaseController
         } else {
             // Récupérer toutes les équipes existantes dans la base de données
             $result = $this->equipeModel->getAllEquipes();
+            $date_actuelle = date('Y-m-d');
 
             // Parcourir toutes les équipes de la base de données
             foreach ($result as $equipeDB) {
                 // Rechercher si l'équipe de la base de données existe dans les données de l'API
-                $equipeKey = array_search($equipeDB->id_equipe, array_column($equipesAPI, 'id_equipe'));
+                $equipeKey = array_search($equipeDB->id_equipe, array_column($equipesAPI, 'id_groupe'));
 
                 // Si l'équipe n'existe pas dans l'API, la supprimer de la base de données
                 if ($equipeKey === false) {
                     $this->equipeModel->deleteEquipe($equipeDB->id_equipe);
                 } else {
-                    // Si l'équipe existe dans l'API, mettre à jour ses informations dans la base de données
-                    $update = [
-                        'nom_court' => $equipesAPI[$equipeKey]['nom_court_groupe'],
-                        'nom_long' => $equipesAPI[$equipeKey]['nom_long_groupe']
-                    ];
-                    $this->equipeModel->updateEquipe($equipeDB->id_equipe, $update);
+                    if (isset($equipesAPI[$equipeKey]['date_fin_groupe'])) {
+                        $interval = new DateInterval('P3M');
+                        $date_fin = date_create_immutable(Time::createFromFormat("d/m/Y", $equipesAPI[$equipeKey]['date_fin_groupe']))
+                            ->add($interval)->format('Y-m-d');
+
+                        // Si la date de fin de groupe + 3 mois est inférieure à la date actuelle, supprimer l'équipe
+                        if ($date_fin < $date_actuelle) {
+                            $this->equipeModel->deleteEquipe($equipeDB->id_equipe);
+                        } else {
+                            // Si l'équipe existe dans l'API, mettre à jour ses informations dans la base de données
+                            $update = [
+                                'nom_court' => $equipesAPI[$equipeKey]['nom_court_groupe'],
+                                'nom_long' => $equipesAPI[$equipeKey]['nom_long_groupe']
+                            ];
+                            $this->equipeModel->updateEquipe($equipeDB->id_equipe, $update);
+                        }
+                    } else {
+                        // Si l'équipe existe dans l'API, mettre à jour ses informations dans la base de données
+                        $update = [
+                            'nom_court' => $equipesAPI[$equipeKey]['nom_court_groupe'],
+                            'nom_long' => $equipesAPI[$equipeKey]['nom_long_groupe']
+                        ];
+                        $this->equipeModel->updateEquipe($equipeDB->id_equipe, $update);
+                    }
                 }
             }
 
             // Parcourir toutes les équipes de l'API
             foreach ($equipesAPI as $equipe) {
                 $id_equipe = $equipe['id_groupe'];
-                $insert = [
-                    'id_equipe' => $id_equipe,
-                    'nom_court' => $equipe['nom_court_groupe'],
-                    'nom_long' => $equipe['nom_long_groupe']
-                ];
+                $interval = new DateInterval('P3M');
+                $date_fin = date_create_immutable(Time::createFromFormat("d/m/Y", $equipe['date_fin_groupe']))
+                    ->add($interval)->format('Y-m-d');
 
-                // Si l'équipe n'existe pas dans la base de données, l'insérer
-                if (!$this->equipeModel->getEquipe($id_equipe)) {
-                    $this->equipeModel->insertEquipe($insert);
+                // Vérifier si l'équipe est active dans l'intervalle de 3 mois après la date de fin
+                if ($date_fin >= $date_actuelle) {
+                    $insert = [
+                        'id_equipe' => $id_equipe,
+                        'nom_court' => $equipe['nom_court_groupe'],
+                        'nom_long' => $equipe['nom_long_groupe']
+                    ];
+
+                    // Si l'équipe n'existe pas dans la base de données, l'insérer
+                    if (!$this->equipeModel->getEquipe($id_equipe)) {
+                        $this->equipeModel->insertEquipe($insert);
+                    }
                 }
             }
         }
     }
+
 
     /**
      * Fonction de mise à jour de toutes les personnes en base de données
@@ -568,58 +599,82 @@ class Home extends BaseController
                 // Vérification si la personne n’existe pas encore et si sa date de fin de séjour n’a pas dépassé 3 mois la date actuelle
                 if (!$this->personneModel->getPersonne($id_personne) && $date_fin > $date_actuelle) {
                     $this->personneModel->insertPersonne($data);
+
                 }
             }
         }
     }
 
     /**
-     * Fonction de mse à jour de tous les numéros de téléphone et numéros de bureau
+     * Fonction de mse à jour de toutes les localisations en base de données
      * @param $localisationsAPI
      * @return void
+     * @throws Exception
      */
     public function updateLocalisationDB($localisationsAPI)
     {
-        // Si l'API ne renvoie aucune localisation, mettre à jour toutes les personnes dans la base de données
-        // en mettant les champs 'telephone' et 'bureau' à NULL
+        // Si l'API ne renvoie aucune localisation, supprimer toutes les localisations de la base de données
         if (empty($localisationsAPI)) {
-            $update = [
-                'telephone' => NULL,
-                'bureau' => NULL
-            ];
-            $this->personneModel->updateAll($update);
+            $this->localisationModel->deleteAll();
         } else {
-            // Récupérer toutes les personnes existantes dans la base de données
-            $result = $this->personneModel->getAllPersonnes('nom');
+            // Récupérer toutes les localisations existantes dans la base de données
+            $result = $this->localisationModel->getAllLocalisations();
 
-            // Parcourir toutes les personnes de la base de données
-            foreach ($result as $localisationsBDD) {
-                // Vérifier si l'ID de la personne existe dans les données de l'API
-                $localisationKey = in_array($localisationsBDD->id_personne, array_column($localisationsAPI, 'id_personne'));
+            // Parcourir toutes les localisations de la base de données
+            foreach ($result as $localisationBDD) {
+                // Rechercher si la localisation de la base de données existe dans les données de l'API
+                $localisationKey = array_search($localisationBDD->id_localisation, array_column($localisationsAPI, 'id_localisation'));
 
-                // Si la personne n'existe pas dans l'API, mettre les champs 'telephone' et 'bureau' à NULL
+                // Si la localisation n'existe pas dans l'API, la supprimer de la base de données
                 if ($localisationKey === false) {
-                    $update = [
-                        'telephone' => NULL,
-                        'bureau' => NULL
-                    ];
-                    $this->personneModel->updatePersonne($localisationsBDD->id_personne, $update);
+                    $this->localisationModel->deleteLocalisation($localisationBDD->id_localisation);
+                } else {
+                    // Vérifier la date de fin de séjour + 3 mois
+                    $date_fin = date_create_immutable(Time::createFromFormat("d/m/Y", $localisationsAPI[$localisationKey]['date_fin_sejour']))
+                        ->add(new DateInterval('P3M'))->format('Y-m-d');
+                    $date_actuelle = date('Y-m-d');
+
+                    // Si la date de fin de séjour + 3 mois est inférieure à la date actuelle, supprimer la localisation
+                    if ($date_fin < $date_actuelle) {
+                        $this->localisationModel->deleteLocalisation($localisationBDD->id_localisation);
+                    } else {
+                        // Si la localisation existe dans l'API, mettre à jour ses informations dans la base de données
+                        $update = [
+                            'telephone' => $localisationsAPI[$localisationKey]['tel_professionnel'],
+                            'bureau' => $localisationsAPI[$localisationKey]['id_bureau'],
+                            'sejour' => $localisationsAPI[$localisationKey]['id_sejour'],
+                            'personne' => $localisationsAPI[$localisationKey]['id_personne']
+                        ];
+                        $this->localisationModel->updateLocalisation($localisationBDD->id_localisation, $update);
+                    }
                 }
             }
 
             // Parcourir toutes les localisations de l'API
             foreach ($localisationsAPI as $localisation) {
-                // Préparer les données pour la mise à jour
-                $update = [
+                // Vérifier la date de fin de séjour + 3 mois
+                $date_fin = date_create_immutable(Time::createFromFormat("d/m/Y", $localisation['date_fin_sejour']))
+                    ->add(new DateInterval('P3M'))->format('Y-m-d');
+                $date_actuelle = date('Y-m-d');
+
+                $id_localisation = $localisation['id_localisation'];
+                $insert = [
+                    'id_localisation' => $id_localisation,
                     'telephone' => $localisation['tel_professionnel'],
-                    'bureau' => $localisation['id_bureau']
+                    'bureau' => $localisation['id_bureau'],
+                    'sejour' => $localisation['id_sejour'],
+                    'personne' => $localisation['id_personne']
                 ];
 
-                // Mettre à jour la personne dans la base de données avec les données de localisation de l'API
-                $this->personneModel->updatePersonne($localisation['id_personne'], $update);
+                // Si la localisation n'existe pas dans la base de données et
+                // si la date de fin de séjour + 3 mois est inférieure à la date actuelle, l'insérer
+                if (!$this->localisationModel->getLocalisation($id_localisation) && $date_fin > $date_actuelle) {
+                    $this->localisationModel->insertLocalisation($insert);
+                }
             }
         }
     }
+
 
     /**
      * Fonction de mise à jour de toutes les responsabilités en base de données
@@ -955,16 +1010,18 @@ class Home extends BaseController
 
             // Modifier ou ajouter la photo de la personne en fonction des données de l'API
             foreach ($profilePicturesAPI as $profilePicture) {
-                var_dump($profilePicture['statut']); // Débogage pour vérifier le statut de chaque photo
                 if (isset($profilePicture['photo'])) {
                     // Si une URL de photo est fournie, télécharger et sauvegarder la photo
                     file_put_contents(FCPATH . 'assets/images/profile/valide/' . $profilePicture['id_personne'] . '.jpg',
                         file_get_contents($profilePicture['photo']));
                 } else if ($profilePicture['statut'] === 'Stagiaire') {
                     // Si le statut de la personne est 'Stagiaire', utiliser l'image par défaut pour les stagiaires
-                    var_dump('oui'); // Débogage pour vérifier le traitement des stagiaires
                     file_put_contents(FCPATH . 'assets/images/profile/valide/' . $profilePicture['id_personne'] . '.jpg',
                         file_get_contents(FCPATH . 'assets/images/profile/stagiaire.png'));
+                } else if ($profilePicture['statut'] === 'Visiteur') {
+                    // Si le statut de la personne est 'Stagiaire', utiliser l'image par défaut pour les stagiaires
+                    file_put_contents(FCPATH . 'assets/images/profile/valide/' . $profilePicture['id_personne'] . '.jpg',
+                        file_get_contents(FCPATH . 'assets/images/profile/visiteur.png'));
                 } else {
                     // Utiliser l'image de profil par défaut pour les autres cas
                     file_put_contents(FCPATH . 'assets/images/profile/valide/' . $profilePicture['id_personne'] . '.jpg',

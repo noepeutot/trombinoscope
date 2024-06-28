@@ -74,7 +74,7 @@ $img_url = img_url('');
                 </h3>
                 <a class="col-md-auto link-offset-2 text-light d-flex justify-content-start align-self-center"
                    href="<?= $base_url . '/' . $personne->id_personne ?>">
-                    Prévisualisation
+                    Visualisation du profile
                     <img class="mx-2" src="<?= $img_url . 'arrow_link.svg' ?>" alt="redirection">
                 </a>
             </div>
@@ -121,24 +121,35 @@ $img_url = img_url('');
                     <?php } ?>
                 </label>
                 <input type="tel" class="form-control" id="inputTel" placeholder="0123456789" name="telephone"
-                       pattern="[0-9]{10}" value="<?= $telephoneModif->apres ?? ($personne->telephone ?? '') ?>">
+                       value="<?php if (isset($telephoneModif)) {
+                           echo $telephoneModif->apres;
+                       } else if (!empty($localisationsPersonne)) {
+                           foreach ($localisationsPersonne as $localisationPersonne) {
+                               echo $localisationPersonne->telephone;
+                               echo next($localisationsPersonne) ? ', ' : '';
+                           }
+                       } else {
+                           echo '';
+                       } ?>">
             </div>
             <div class="col-md-6">
-                <label for="inputBureau" class="form-label text-light">Bureau
+                <label for="inputBureau" class="form-label text-light w-100">Bureau⋅x
                     <?php if (isset($bureauModif)) { ?>
                         <span class="badge rounded-pill text-bg-warning">En attente
-                            <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
-                        </span>
+                <img src="<?= $img_url . 'waiting.svg' ?>" alt="en attente" width="10">
+            </span>
                     <?php } ?>
                 </label>
                 <select class="selectpicker w-100" id="inputBureau" data-live-search="true"
-                        data-style="btn-light" title="Sélectionner…" name="bureau" form="informations">
+                        data-style="btn-light" title="Sélectionner…" name="bureau[]" form="informations" multiple>
                     <?php if (!empty($allBureaux)) {
                         foreach ($allBureaux as $bureau) { ?>
                             <option <?php if (isset($bureauModif)) {
-                                echo $bureauModif === $bureau->id_bureau ? 'selected' : '';
-                            } else if (!empty($bureauPersonne)) {
-                                echo $bureau->id_bureau === $bureauPersonne->id_bureau ? 'selected' : '';
+                                $on_array = in_array($bureau->id_bureau, $bureauModif);
+                                echo $on_array ? 'selected' : ''; ?>
+                            <?php } else if (isset($bureauPersonne)) {
+                                echo in_array($bureau->id_bureau,
+                                    array_column($bureauPersonne, 'id_bureau')) ? 'selected' : '';
                             } ?> value="<?= $bureau->id_bureau ?>">
                                 <?= $bureau->numero ?>
                             </option>

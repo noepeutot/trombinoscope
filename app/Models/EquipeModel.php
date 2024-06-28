@@ -58,6 +58,23 @@ class EquipeModel extends Model
     }
 
     /**
+     * Fonction qui permet de retourner toutes les équipes utiles au filtre
+     * @return array
+     */
+    public function getEquipesFiltre(): array
+    {
+        $filtre = ['EP',
+            'ERT - CMF',
+            'MADEA+',
+            'MAGE',
+            'MDE',
+            'SYREL',
+            'µ Systèmes'];
+        return $this->whereIn('nom_court', $filtre)
+            ->orderBy('nom_court', 'ASC')->findAll();
+    }
+
+    /**
      * Fonction qui met à jour une équipe
      */
     public function updateEquipe(int $id_equipe, array $data): bool

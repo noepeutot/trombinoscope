@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : 127.0.0.1:3306
--- Généré le : jeu. 20 juin 2024 à 14:39
+-- Généré le : ven. 28 juin 2024 à 16:16
 -- Version du serveur : 8.0.31
 -- Version de PHP : 8.0.26
 
@@ -114,10 +114,10 @@ INSERT INTO `encadrant` (`id_encadrant`, `id_sejour`, `id_personne`, `nom`, `pre
 (7, 14, 9, NULL, NULL),
 (8, 15, 9, NULL, NULL),
 (9, 18, 16, NULL, NULL),
-(10, 21, 5, NULL, NULL),
 (12, 4, 25, NULL, NULL),
 (13, 2, 1, NULL, NULL),
-(14, 31, 29, NULL, NULL);
+(14, 31, 29, NULL, NULL),
+(16, 34, 26, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -140,13 +140,16 @@ CREATE TABLE IF NOT EXISTS `equipe` (
 
 INSERT INTO `equipe` (`id_equipe`, `nom_court`, `nom_long`) VALUES
 (1, 'G2ELAB', 'G2ELAB'),
-(2, 'Informatique', NULL),
-(3, 'Physique des matériaux', NULL),
-(4, 'Instrumentation', NULL),
-(5, 'Mécatronique', NULL),
-(6, 'Informatique Industrielle', NULL),
-(8, 'Champs Magnétiques Faibles', NULL),
-(10, 'Administratif et Financier', NULL);
+(2, 'SYREL', NULL),
+(3, 'MAGE', NULL),
+(4, 'MDE', NULL),
+(5, 'MADEA+', NULL),
+(6, 'ERT - CMF', NULL),
+(8, 'POLE TECH', NULL),
+(10, 'POLE DIRECTION', NULL),
+(11, 'EP', NULL),
+(12, 'µ Systèmes', NULL),
+(13, 'Pole Admin', NULL);
 
 -- --------------------------------------------------------
 
@@ -188,7 +191,6 @@ INSERT INTO `financement` (`id_financement`, `id_sejour`, `id_employeur`) VALUES
 (18, 18, 7),
 (19, 19, 5),
 (20, 20, 1),
-(21, 21, 1),
 (22, 22, 2),
 (23, 23, 2),
 (24, 24, 2),
@@ -199,7 +201,37 @@ INSERT INTO `financement` (`id_financement`, `id_sejour`, `id_employeur`) VALUES
 (30, 30, 5),
 (31, 1, 10),
 (33, 31, 1),
-(35, 33, 10);
+(35, 33, 10),
+(36, 34, 10);
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `localisation`
+--
+
+DROP TABLE IF EXISTS `localisation`;
+CREATE TABLE IF NOT EXISTS `localisation` (
+  `id_localisation` int NOT NULL,
+  `telephone` int DEFAULT NULL,
+  `bureau` int DEFAULT NULL,
+  `sejour` int DEFAULT NULL,
+  `personne` int DEFAULT NULL,
+  PRIMARY KEY (`id_localisation`),
+  KEY `bureau` (`bureau`),
+  KEY `sejour` (`sejour`),
+  KEY `personne` (`personne`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+--
+-- Déchargement des données de la table `localisation`
+--
+
+INSERT INTO `localisation` (`id_localisation`, `telephone`, `bureau`, `sejour`, `personne`) VALUES
+(1, 123456789, 1, 1, 1),
+(2, 987654321, 2, 2, 2),
+(4, 234567891, 2, 34, 21),
+(5, 345678912, 1, 34, 21);
 
 -- --------------------------------------------------------
 
@@ -271,17 +303,34 @@ CREATE TABLE IF NOT EXISTS `modification` (
   `commentaire` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
   PRIMARY KEY (`id_modification`),
   KEY `id_personne` (`id_personne`)
-) ENGINE=InnoDB AUTO_INCREMENT=107 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=130 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Déchargement des données de la table `modification`
 --
 
 INSERT INTO `modification` (`id_modification`, `id_personne`, `attribut`, `avant`, `apres`, `statut`, `commentaire`) VALUES
-(102, 2, 'Photo', 'http://localhost/trombi/public/assets/images/profile/valide/2', 'http://localhost/trombi/public/assets/images/profile/en_attente/2', 'annule', ''),
+(102, 2, 'Photo', 'http://localhost/trombi/public/assets/images/profile/valide/2', 'http://localhost/trombi/public/assets/images/profile/en_attente/2', 'valide', ''),
 (103, 2, 'Equipe', '2', '2, 6', 'valide', ''),
-(104, 2, 'Nom', 'PEUTOT', 'PEUTOTt', 'attente', ''),
-(105, 2, 'Activité', 'Trombinoscope', 'Réalisation d\'un trombinoscope moderne', 'attente', '');
+(104, 2, 'Nom', 'PEUTOT', 'PEUTOTt', 'annule', ''),
+(105, 2, 'Activité', 'Trombinoscope', 'Réalisation d\'un trombinoscope moderneRéalisation d\'un trombinoscope moderne', 'valide', ''),
+(108, 1, 'Equipe', '2', '2, 5', 'annule', ''),
+(111, 2, 'Prénom', 'Noé', 'Noée', 'annule', ''),
+(113, 2, 'Téléphone', '0987654321', '0987654322', 'valide', ''),
+(114, 2, 'Bureau', '2', '1', 'valide', ''),
+(115, 2, 'Statut', '33', '31', 'valide', ''),
+(117, 2, 'Employeur', '5', '5, 6, 7', 'valide', ''),
+(118, 2, 'Photo', 'http://localhost/trombi/public/assets/images/profile/valide/2', 'http://localhost/trombi/public/assets/images/profile/en_attente/2', 'annule', ''),
+(119, 2, 'Statut', '31', '33', 'valide', ''),
+(120, 2, 'Activité', 'Réalisation d\'un trombinoscope moderneRéalisation d\'un trombinoscope moderne', 'Réalisation d\'un trombinoscope moderne', 'valide', ''),
+(121, 2, 'Employeur', '5, 10', '5', 'valide', ''),
+(122, 2, 'Photo', 'http://localhost/trombi/public/assets/images/profile/valide/2', 'http://localhost/trombi/public/assets/images/profile/en_attente/2', 'valide', ''),
+(123, 2, 'Photo', 'http://localhost/trombi/public/assets/images/profile/valide/2', 'http://localhost/trombi/public/assets/images/profile/en_attente/2', 'valide', ''),
+(125, 2, 'Equipe', '2', '2, 10', 'annule', ''),
+(126, 2, 'Bureau', '1', '2', 'annule', ''),
+(127, 2, 'Nom', 'PEUTOT', 'PEUTOTt', 'annule', ''),
+(128, 2, 'Bureau', '2', '1, 2', 'valide', ''),
+(129, 2, 'Téléphone', '987654321', '123456789, 9876543210', 'attente', '');
 
 -- --------------------------------------------------------
 
@@ -296,52 +345,49 @@ CREATE TABLE IF NOT EXISTS `personne` (
   `role` enum('normal','admin','modo') CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   `nom` varchar(255) NOT NULL,
   `prenom` varchar(255) NOT NULL,
-  `telephone` varchar(10) DEFAULT NULL,
   `statut` int DEFAULT NULL,
-  `bureau` int DEFAULT NULL,
   PRIMARY KEY (`id_personne`),
   UNIQUE KEY `id_personne` (`id_personne`),
   UNIQUE KEY `id_personne_2` (`id_personne`),
-  KEY `cle_etrangere_statut` (`statut`),
-  KEY `cle_etrangere_bureau` (`bureau`)
+  KEY `cle_etrangere_statut` (`statut`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Déchargement des données de la table `personne`
 --
 
-INSERT INTO `personne` (`id_personne`, `login`, `role`, `nom`, `prenom`, `telephone`, `statut`, `bureau`) VALUES
-(1, 'danguilv', 'modo', 'DANGUILLAUME', 'Vincent', '0123456789', 5, 1),
-(2, 'peutotn', 'admin', 'PEUTOT', 'Noé', '0987654321', 33, 2),
-(3, NULL, 'normal', 'LEROUX', 'Rachelle', NULL, 4, NULL),
-(4, NULL, 'normal', 'RATTÉ', 'Marcelle', NULL, 30, NULL),
-(5, NULL, 'normal', 'COLASUONNO', 'Henry', NULL, 8, NULL),
-(6, NULL, 'normal', 'DERBEY', 'Almarick', NULL, 31, NULL),
-(7, NULL, 'normal', 'POLIZZI', 'Rachelle', NULL, 33, NULL),
-(8, NULL, 'normal', 'CUILLA', 'Emilie', NULL, 2, NULL),
-(9, NULL, 'normal', 'FERRARI', 'Jean', NULL, 5, NULL),
-(10, NULL, 'normal', 'BRACONNIER', 'Thierry', NULL, 5, NULL),
-(11, NULL, 'normal', 'DARGAUD', 'Delphine', NULL, 4, NULL),
-(12, NULL, 'normal', 'GRIMONET', 'Alfonse', NULL, 25, NULL),
-(13, NULL, 'normal', 'LABONNE', 'Anna', NULL, 30, NULL),
-(14, NULL, 'normal', 'POLLET', 'Colette', NULL, 31, NULL),
-(15, NULL, 'normal', 'IMARD', 'Valentin', NULL, 24, NULL),
-(16, NULL, 'normal', 'MARCON', 'Corine', NULL, 5, NULL),
-(17, NULL, 'normal', 'ESTRABAUT', 'Laurent', NULL, 5, NULL),
-(18, NULL, 'normal', 'BRAOS', 'Agathe', NULL, 35, NULL),
-(19, NULL, 'normal', 'ROCHE', 'Evan', NULL, 14, NULL),
-(20, NULL, 'normal', 'GIRARD', 'Fabrice', NULL, 2, NULL),
-(21, NULL, 'normal', 'ARRIEULA', 'Beatrice', NULL, 24, NULL),
-(22, NULL, 'normal', 'FLURY', 'Samuel', NULL, 4, NULL),
-(23, NULL, 'normal', 'VAILLANT', 'Mathieu', NULL, 8, NULL),
-(24, NULL, 'normal', 'GARCIA', 'Sophie', NULL, 6, NULL),
-(25, NULL, 'normal', 'AUVERGNE', 'Rachelle', NULL, 3, NULL),
-(26, NULL, 'normal', 'DUMAS', 'François', NULL, 3, NULL),
-(27, NULL, 'normal', 'NORRIS', 'William', NULL, 4, NULL),
-(28, NULL, 'normal', 'LOUBET', 'Sabrine', NULL, 7, NULL),
-(29, NULL, 'normal', 'DEBRIEUX', 'Marie', NULL, 7, NULL),
-(32, NULL, 'normal', 'PATRICK', 'Sebastien', NULL, 20, NULL),
-(33, NULL, 'normal', 'HENRY', 'Pierre', NULL, NULL, NULL);
+INSERT INTO `personne` (`id_personne`, `login`, `role`, `nom`, `prenom`, `statut`) VALUES
+(1, 'danguilv', 'modo', 'DANGUILLAUME', 'Vincent', 5),
+(2, 'peutotn', 'admin', 'PEUTOT', 'Noé', 33),
+(3, NULL, 'normal', 'LEROUX', 'Rachelle', 4),
+(4, NULL, 'normal', 'RATTÉ', 'Marcelle', 30),
+(5, NULL, 'normal', 'COLASUONNO', 'Henry', 8),
+(6, NULL, 'normal', 'DERBEY', 'Almarick', 31),
+(7, NULL, 'normal', 'POLIZZI', 'Rachelle', 33),
+(8, NULL, 'normal', 'CUILLA', 'Emilie', 2),
+(9, NULL, 'normal', 'FERRARI', 'Jean', 5),
+(10, NULL, 'normal', 'BRACONNIER', 'Thierry', 5),
+(11, NULL, 'normal', 'DARGAUD', 'Delphine', 4),
+(12, NULL, 'normal', 'GRIMONET', 'Alfonse', 25),
+(13, NULL, 'normal', 'LABONNE', 'Anna', 30),
+(14, NULL, 'normal', 'POLLET', 'Colette', 31),
+(15, NULL, 'normal', 'IMARD', 'Valentin', 24),
+(16, NULL, 'normal', 'MARCON', 'Corine', 5),
+(17, NULL, 'normal', 'ESTRABAUT', 'Laurent', 5),
+(18, NULL, 'normal', 'BRAOS', 'Agathe', 38),
+(19, NULL, 'normal', 'ROCHE', 'Evan', 14),
+(20, NULL, 'normal', 'GIRARD', 'Fabrice', 2),
+(21, NULL, 'normal', 'ARRIEULA', 'Beatrice', 31),
+(22, NULL, 'normal', 'FLURY', 'Samuel', 4),
+(23, NULL, 'normal', 'VAILLANT', 'Mathieu', 8),
+(24, NULL, 'normal', 'GARCIA', 'Sophie', 6),
+(25, NULL, 'normal', 'AUVERGNE', 'Rachelle', 3),
+(26, NULL, 'normal', 'DUMAS', 'François', 3),
+(27, NULL, 'normal', 'NORRIS', 'William', 4),
+(28, NULL, 'normal', 'LOUBET', 'Sabrine', 7),
+(29, NULL, 'normal', 'DEBRIEUX', 'Marie', 7),
+(32, NULL, 'normal', 'PATRICK', 'Sebastien', 20),
+(33, NULL, 'normal', 'HENRY', 'Pierre', 8);
 
 -- --------------------------------------------------------
 
@@ -384,7 +430,6 @@ INSERT INTO `rattachement` (`id_rattachement`, `id_sejour`, `id_equipe`) VALUES
 (18, 18, 2),
 (19, 19, 4),
 (20, 20, 4),
-(21, 21, 4),
 (22, 22, 4),
 (23, 23, 4),
 (24, 24, 5),
@@ -394,7 +439,8 @@ INSERT INTO `rattachement` (`id_rattachement`, `id_sejour`, `id_equipe`) VALUES
 (29, 29, 10),
 (30, 30, 10),
 (31, 31, 10),
-(36, 33, 2);
+(36, 33, 2),
+(37, 34, 10);
 
 -- --------------------------------------------------------
 
@@ -436,7 +482,7 @@ CREATE TABLE IF NOT EXISTS `sejour` (
   PRIMARY KEY (`id_sejour`),
   UNIQUE KEY `id_sejour` (`id_sejour`),
   KEY `id_personne` (`id_personne`)
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 --
 -- Déchargement des données de la table `sejour`
@@ -463,7 +509,6 @@ INSERT INTO `sejour` (`id_sejour`, `date_debut`, `date_fin`, `id_personne`, `suj
 (18, '2020-02-02', '2050-02-02', 18, NULL),
 (19, '2010-09-05', '2030-09-05', 19, NULL),
 (20, '2005-01-01', '2035-01-01', 20, NULL),
-(21, '2019-01-01', '2025-01-01', 21, NULL),
 (22, '2015-01-01', '2030-01-01', 22, NULL),
 (23, '2015-05-05', '2025-05-05', 23, NULL),
 (24, '2015-01-01', '2100-01-01', 24, NULL),
@@ -473,7 +518,8 @@ INSERT INTO `sejour` (`id_sejour`, `date_debut`, `date_fin`, `id_personne`, `suj
 (29, '2010-01-01', '2100-01-01', 28, NULL),
 (30, '2010-01-01', '2100-01-01', 29, NULL),
 (31, '2010-01-01', '2025-01-01', 32, NULL),
-(33, '2024-01-20', '2100-01-01', 33, NULL);
+(33, '2024-01-20', '2100-01-01', 33, NULL),
+(34, '2000-06-28', '2025-06-29', 21, NULL);
 
 -- --------------------------------------------------------
 
@@ -576,6 +622,14 @@ ALTER TABLE `financement`
   ADD CONSTRAINT `financement_ibfk_2` FOREIGN KEY (`id_sejour`) REFERENCES `sejour` (`id_sejour`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Contraintes pour la table `localisation`
+--
+ALTER TABLE `localisation`
+  ADD CONSTRAINT `cle_etrangere_id_bureau` FOREIGN KEY (`bureau`) REFERENCES `bureau` (`id_bureau`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `cle_etrangere_id_personne` FOREIGN KEY (`personne`) REFERENCES `personne` (`id_personne`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `cle_etrangere_sejour` FOREIGN KEY (`sejour`) REFERENCES `sejour` (`id_sejour`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Contraintes pour la table `mail`
 --
 ALTER TABLE `mail`
@@ -591,7 +645,6 @@ ALTER TABLE `modification`
 -- Contraintes pour la table `personne`
 --
 ALTER TABLE `personne`
-  ADD CONSTRAINT `cle_etrangere_bureau` FOREIGN KEY (`bureau`) REFERENCES `bureau` (`id_bureau`) ON DELETE SET NULL ON UPDATE SET NULL,
   ADD CONSTRAINT `cle_etrangere_statut` FOREIGN KEY (`statut`) REFERENCES `statut` (`id_statut`) ON DELETE SET NULL ON UPDATE SET NULL;
 COMMIT;
 

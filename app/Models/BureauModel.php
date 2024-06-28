@@ -81,15 +81,15 @@ class BureauModel extends Model
     /**
      * Fonction qui permet de retourner le bureau d’une personne à partir de son id
      * @param int $id_personne
-     * @return array|object|null
+     * @return array|null
      */
-    public function getBureauPersonne(int $id_personne)
+    public function getBureauxPersonne(int $id_personne): ?array
     {
         return $this->where('id_bureau IN 
         (SELECT b.id_bureau
-        FROM bureau b, personne p 
-        WHERE b.id_bureau=p.bureau
-        AND p.id_personne='. $id_personne.')')->first();
+        FROM bureau b, localisation l
+        WHERE b.id_bureau=l.bureau
+        AND l.personne='. $id_personne.')')->find();
     }
 
     /**

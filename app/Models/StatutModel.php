@@ -57,6 +57,17 @@ class StatutModel extends Model
     }
 
     /**
+     * Fonction qui permet de retourner tous les statuts avec lesquels il y a des personnes dedans
+     * @return array
+     */
+    public function getStatutsNonVide(): array
+    {
+        return $this->where('id_statut IN (SELECT statut FROM personne)')
+            ->orderBy('statut', 'ASC')
+            ->find();
+    }
+
+    /**
      * Fonction qui met à jour un statut
      */
     public function updateStatut(int $id_statut, array $data): bool
@@ -89,7 +100,7 @@ class StatutModel extends Model
         (SELECT s.id_statut 
         FROM statut s, personne p 
         WHERE s.id_statut=p.statut
-        AND p.id_personne='. $id_personne.')')->first();
+        AND p.id_personne=' . $id_personne . ')')->first();
     }
 
     /**

@@ -21,9 +21,7 @@ class PersonneModel extends Model
         'role',
         'nom',
         'prenom',
-        'telephone',
-        'statut',
-        'bureau'];
+        'statut'];
 
     public function __construct()
     {
@@ -55,7 +53,6 @@ class PersonneModel extends Model
         return $this->join('sejour', 'personne.id_personne = sejour.id_personne', 'inner')
             ->orderBy('date_debut', 'desc')
             ->limit($nombreLimite)
-//            ->join('statut', 'personne.statut = statut.id_statut')
             ->join('mail', 'personne.id_personne = mail.id_personne', 'inner')
             ->find();
     }

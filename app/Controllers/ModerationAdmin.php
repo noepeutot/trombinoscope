@@ -152,13 +152,23 @@ class ModerationAdmin extends BaseController
      */
     private function enrichBureau($modification)
     {
-        // Récupération des entités bureau avant et après de la modification
-        $bureauAvant = $this->bureauModel->getBureau(intval($modification->avant));
-        $bureauApres = $this->bureauModel->getBureau(intval($modification->apres));
+        // Récupération des bureaux avant la modification
+        $bureauAvant = [];
+        $bureauxIDAvant = explode(', ', $modification->avant);
+        foreach ($bureauxIDAvant as $bureauID) {
+            $bureauAvant[] = $this->bureauModel->getBureau(intval($bureauID));
+        }
 
-        // Stockage des entités statut d’avant et d’après la modification
-        $modification->bureauAvant = $bureauAvant;
-        $modification->bureauApres = $bureauApres;
+        // Récupération des bureaux après la modification
+        $bureauApres = [];
+        $bureauxIDApres = explode(', ', $modification->apres);
+        foreach ($bureauxIDApres as $bureauID) {
+            $bureauApres[] = $this->bureauModel->getBureau(intval($bureauID));
+        }
+
+        // Stockage des entités bureau avant et après la modification
+        $modification->bureauxAvant = $bureauAvant;
+        $modification->bureauxApres = $bureauApres;
     }
 
     /**

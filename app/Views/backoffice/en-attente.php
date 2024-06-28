@@ -55,7 +55,11 @@ $baseUrl = base_url('backoffice/moderation');
                                     </span>
                                     <span class="text-center text-break text-truncate-span">
                                         <?php if ($modification->attribut === "Bureau") {
-                                            echo $modification->bureauAvant->numero;
+                                            $bureauxAvant =  $modification->bureauxAvant;
+                                            foreach ($bureauxAvant as $bureauAvant) {
+                                                echo $bureauAvant->numero;
+                                                echo next($bureauxAvant) ? ', ' : '';
+                                            }
                                         } elseif ($modification->attribut === "Statut") {
                                             echo $modification->statutAvant->statut;
                                         } elseif ($modification->attribut === "Equipe") {
@@ -84,7 +88,11 @@ $baseUrl = base_url('backoffice/moderation');
                                     </span>
                                     <span class="text-center text-break text-truncate-span">
                                         <?php if ($modification->attribut === "Bureau") {
-                                            echo $modification->bureauApres->numero;
+                                            $bureauxApres =  $modification->bureauxApres;
+                                            foreach ($bureauxApres as $bureauApres) {
+                                                echo $bureauApres->numero;
+                                                echo next($bureauxApres) ? ', ' : '';
+                                            }
                                         } elseif ($modification->attribut === "Statut") {
                                             echo $modification->statutApres->statut;
                                         } elseif ($modification->attribut === "Equipe") {
